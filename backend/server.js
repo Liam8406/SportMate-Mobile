@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: true,
     credentials: true,
   })
 );
@@ -39,18 +39,36 @@ mongoose
 
 /* ---------------- auth middleware ---------------- */
 function auth(req, res, next) {
-  const token = req.cookies.token;
-  if (!token) return res.status(401).json({ error: "Not logged in" });
+  const authHeader = req.headers.authorization;
+
+  if (!authHeader) {
+    return res.status(401).json({
+      error: "Not logged in",
+    });
+  }
+
+  const token = authHeader.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({
+      error: "Not logged in",
+    });
+  }
 
   try {
-    const data = jwt.verify(token, process.env.JWT_SECRET);
+    const data = jwt.verify(
+      token,
+      process.env.JWT_SECRET
+    );
+
     req.userId = data.id;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({
+      error: "Invalid token",
+    });
   }
 }
-
 /* ---------------- multer ---------------- */
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, AVATARS_DIR),
@@ -129,8 +147,8 @@ app.post("/login", async (req, res) => {
     expiresIn: "7d",
   });
 
-  res.cookie("token", token, { httpOnly: true, sameSite: "lax" }); //httpsOnly keeps the cookie from js and helps against xss attacks and lax helps against csrf
-  res.json({ status: "logged in" });
+  res.cookie("token", token, { httpOnly: true, sameSite: "lax" });
+  res.json({ status: "logged in", token });
 });
 
 app.post("/logout", (_, res) => {
