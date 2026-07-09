@@ -1,10 +1,8 @@
 const express = require("express");
 const router = express.Router();
-// Import the Session model (exported as "Session" from FieldSchedule.js)
 const Session = require("../models/FieldSchedule");
 const jwt = require("jsonwebtoken");
 
-// Middleware to get User ID from token
 function auth(req, res, next) {
   const token = req.cookies.token;
   if (!token) return res.status(401).json({ error: "Unauthorized" });
@@ -17,12 +15,10 @@ function auth(req, res, next) {
   }
 }
 
-// GET: Fetch sessions for a specific field
 router.get("/:fieldId", async (req, res) => {
   try {
     const { fieldId } = req.params;
-    
-    // Populate host and players with specific fields (username, avatar, age)
+
     const sessions = await Session.find({ fieldId })
       .populate("host", "username age avatar")
       .populate("players", "username age avatar")
@@ -35,7 +31,6 @@ router.get("/:fieldId", async (req, res) => {
   }
 });
 
-// POST: Create a new session
 router.post("/create", auth, async (req, res) => {
   try {
     const { fieldId, fieldName, sport, date, startTime, duration } = req.body;
@@ -116,7 +111,6 @@ router.post("/create", auth, async (req, res) => {
   }
 });
 
-// POST: Join a session
 router.post("/:sessionId/join", auth, async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -124,7 +118,6 @@ router.post("/:sessionId/join", auth, async (req, res) => {
 
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    // Check if already joined
     if (session.players.includes(req.userId)) {
       return res.status(400).json({ error: "Already joined" });
     }
@@ -146,7 +139,6 @@ router.post("/:sessionId/join", auth, async (req, res) => {
   }
 });
 
-// DELETE: Delete a session (only host/creator can delete)
 router.delete("/:sessionId", auth, async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -156,12 +148,10 @@ router.delete("/:sessionId", auth, async (req, res) => {
       return res.status(404).json({ error: "Session not found" });
     }
 
-    // Check if user is the host/creator
     if (session.host.toString() !== req.userId.toString()) {
       return res.status(403).json({ error: "Only the creator can delete this session" });
     }
 
-    // Delete the session
     await Session.findByIdAndDelete(sessionId);
 
     res.json({ 
