@@ -2,6 +2,7 @@ require("dotenv").config({ path: __dirname + "/.env" });
 
 const express = require("express");
 const mongoose = require("mongoose");
+const dns = require("dns");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
@@ -9,18 +10,23 @@ const cors = require("cors");
 const multer = require("multer");
 const axios = require("axios");
 
-/* ---------------- models ---------------- */
 const User = require("./models/User");
 const Session = require("./models/FieldSchedule");
 
-/* ---------------- routes ---------------- */
 const fieldsRoutes = require("./routes/fields");
 const scheduleRoutes = require("./routes/schedule");
 
 const app = express();
-const PORT = 4000;
+const PORT = process.env.PORT || 4000;
+const MONGO_DNS_SERVERS = (process.env.MONGO_DNS_SERVERS || "8.8.8.8,1.1.1.1")
+  .split(",")
+  .map((server) => server.trim())
+  .filter(Boolean);
 
-/* ---------------- middleware ---------------- */
+if (process.env.MONGO_URI?.startsWith("mongodb+srv://") && MONGO_DNS_SERVERS.length) {
+  dns.setServers(MONGO_DNS_SERVERS);
+}
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -31,13 +37,6 @@ app.use(
   })
 );
 
-/* ---------------- db ---------------- */
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.error("MongoDB connection failed:", err.message));
-
-/* ---------------- auth middleware ---------------- */
 function auth(req, res, next) {
   const authHeader = req.headers.authorization;
 
@@ -69,7 +68,6 @@ function auth(req, res, next) {
     });
   }
 }
-/* ---------------- multer ---------------- */
 const storage = multer.diskStorage({
   destination: (_, __, cb) => cb(null, AVATARS_DIR),
   filename: (_, file, cb) =>
@@ -79,7 +77,7 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
-    fileSize: 2 * 1024 * 1024, // 2MB max
+    fileSize: 2 * 1024 * 1024,
   },
   fileFilter: (_, file, cb) => {
     if (!file.mimetype.startsWith("image/")) {
@@ -88,8 +86,6 @@ const upload = multer({
     cb(null, true);
   },
 });
-
-/* ---------------- auth routes ---------------- */
 
 app.post("/register", async (req, res) => {
   const { username, email, phone, password, age } = req.body;
@@ -155,8 +151,6 @@ app.post("/logout", (_, res) => {
   res.clearCookie("token");
   res.json({ status: "logged out" });
 });
-
-/* ---------------- profile ---------------- */
 
 app.get("/profile", auth, async (req, res) => {
   const user = await User.findById(req.userId).select(
@@ -262,15 +256,13 @@ app.get("/users/:id", auth, async (req, res) => {
   }
 });
 
-/* ---------------- DELETE USER ---------------- */
-
 app.delete("/profile", auth, async (req, res) => {
   try {
     const userId = req.userId;
 
     await Session.deleteMany({
       $or: [{ host: userId }, { players: userId }],
-    }); //if one is true delete all session created by the player v
+    });
 
     await User.findByIdAndDelete(userId);
 
@@ -282,8 +274,6 @@ app.delete("/profile", auth, async (req, res) => {
     res.status(500).json({ error: "Failed to delete user" });
   }
 });
-
-/* ---------------- geocode ---------------- */
 
 app.get("/geocode", async (req, res) => {
   try {
@@ -314,11 +304,29 @@ app.get("/geocode", async (req, res) => {
   }
 });
 
-/* ---------------- external routes ---------------- */
 app.use("/api", fieldsRoutes);
 app.use("/schedule", scheduleRoutes);
 
-/* ---------------- start ---------------- */
-app.listen(PORT, () => {
-  console.log("Server running on port", PORT);
-});
+async function startServer() {
+  if (!process.env.MONGO_URI) {
+    console.error("MongoDB connection failed: missing MONGO_URI");
+    process.exit(1);
+  }
+
+  try {
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000,
+    });
+
+    console.log("MongoDB connected");
+
+    app.listen(PORT, () => {
+      console.log("Server running on port", PORT);
+    });
+  } catch (err) {
+    console.error("MongoDB connection failed:", err.message);
+    process.exit(1);
+  }
+}
+
+startServer();
