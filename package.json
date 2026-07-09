@@ -1,0 +1,10 @@
+{
+  "name": "sportmate-mobile-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "backend": "node backend/server.js",
+    "mobile": "npm --prefix mobile start"
+  }
+}

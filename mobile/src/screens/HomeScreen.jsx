@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Location from "expo-location";
 
 import api from "../../api";
@@ -233,27 +232,6 @@ export default function HomeScreen({ navigation }) {
     Alert.alert("קביעת משחק", field?.name || "בחרת מגרש");
   };
 
-  const handleLogout = async () => {
-    try {
-      await api.post("/logout");
-    } catch {
-      // Removing the local token is enough for mobile logout.
-    }
-
-    await AsyncStorage.removeItem("token");
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
-  };
-
-  const openProfileMenu = () => {
-    Alert.alert("פרופיל", "מסך הפרופיל עדיין לא מחובר", [
-      { text: "ביטול", style: "cancel" },
-      { text: "התנתקות", style: "destructive", onPress: handleLogout },
-    ]);
-  };
-
   const renderSport = ({ item }) => {
     const active = selectedSport === item.value || (selectedSport === null && item.value === null);
 
@@ -411,7 +389,11 @@ export default function HomeScreen({ navigation }) {
           <Text style={[styles.navIcon, styles.navIconActive]}>⌂</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity activeOpacity={0.85} style={styles.navItem} onPress={openProfileMenu}>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.navItem}
+          onPress={() => navigation.navigate("Profile")}
+        >
           <Text style={styles.navIcon}>●</Text>
         </TouchableOpacity>
       </View>
