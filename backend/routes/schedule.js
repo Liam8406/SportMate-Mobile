@@ -4,8 +4,14 @@ const Session = require("../models/FieldSchedule");
 const jwt = require("jsonwebtoken");
 
 function auth(req, res, next) {
-  const token = req.cookies.token;
+  const authHeader = req.headers.authorization;
+  const bearerToken = authHeader?.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : null;
+  const token = bearerToken || req.cookies?.token;
+
   if (!token) return res.status(401).json({ error: "Unauthorized" });
+
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = data.id;
@@ -118,7 +124,7 @@ router.post("/:sessionId/join", auth, async (req, res) => {
 
     if (!session) return res.status(404).json({ error: "Session not found" });
 
-    if (session.players.includes(req.userId)) {
+    if (session.players.some((playerId) => playerId.toString() === req.userId.toString())) {
       return res.status(400).json({ error: "Already joined" });
     }
 

@@ -13,6 +13,7 @@ const SessionSchema = new mongoose.Schema({
 
   date: String, 
   startTime: String,  
+  startTimeDate: Date,
   endTime: Date,      
   durationMinutes: Number,
 
