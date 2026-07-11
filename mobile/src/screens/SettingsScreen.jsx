@@ -77,17 +77,17 @@ export default function SettingsScreen({ navigation }) {
 
           <View style={styles.row}>
             <Text style={styles.rowText}>
-              מצב כהה
+              מצב לילה
             </Text>
-                        <Switch
-              value={darkMode}
-              onValueChange={toggleTheme}
-              trackColor={{
-                false: "#D1D5DB",
-                true: colors.primary,
-              }}
-              thumbColor="#FFFFFF"
-            />
+              <Switch
+                value={darkMode}
+                onValueChange={toggleTheme}
+                trackColor={{
+                    false: "#D1D5DB",
+                    true: colors.primary,
+                }}
+                thumbColor="#FFFFFF"
+              />
           </View>
         </View>
 

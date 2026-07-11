@@ -31,19 +31,22 @@ export default function LoginScreen({ navigation }) {
 
     try {
         const response = await api.post("/login", {
-        email: cleanEmail,
-        password,
+            email: cleanEmail,
+            password,
         });
 
         if (response.data.token) {
-        await AsyncStorage.setItem("token", response.data.token);
+            await AsyncStorage.setItem("token", response.data.token);
         }
 
         setMessageColor("green");
         setMessage("התחברת בהצלחה");
 
         setTimeout(() => {
-        navigation.navigate("Home");
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "Home" }],
+            });
         }, 800);
 
     } 

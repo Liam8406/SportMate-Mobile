@@ -81,6 +81,7 @@ export default function HomeScreen({ navigation }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hint, setHint] = useState("");
   const [pickedImage, setPickedImage] = useState(null);
+  const [locationName, setLocationName] = useState("");
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -157,12 +158,28 @@ export default function HomeScreen({ navigation }) {
 
     try {
       const gps = await getCoords();
+      const places = await Location.reverseGeocodeAsync({
+        latitude: gps.lat,
+        longitude: gps.lng,
+        });
+
+        if (places.length > 0) {
+        const place = places[0];
+
+        setLocationName(
+            place.city ||
+            place.subregion ||
+            place.region ||
+            "המיקום שלי"
+        );
+      }
       setGpsCenter(gps);
       setActiveCenter(gps);
       setSelectedSport(null);
       setQuery("");
       await fetchFields(gps, null, "", gps);
-    } catch {
+    } 
+    catch {
       setHint("צריך לאשר מיקום כדי להציג מגרשים קרובים");
     }
   }, [canInteract, fetchFields]);
@@ -305,7 +322,9 @@ export default function HomeScreen({ navigation }) {
 
         <View style={styles.locationRow}>
           <Text style={styles.locationPin}>●</Text>
-          <Text style={styles.locationText}>יהודה הלוי 17, דימונה</Text>
+        <Text style={styles.locationText}>
+            {locationName || "טוען מיקום..."}
+        </Text>
         </View>
 
         <View style={styles.searchBar}>
@@ -314,7 +333,7 @@ export default function HomeScreen({ navigation }) {
             value={query}
             onChangeText={setQuery}
             editable={canInteract}
-            placeholder="חיפוש באיזורך"
+            placeholder="חיפוש לפי עיר או רחוב"
             placeholderTextColor={colors.secondaryText}
             returnKeyType="search"
             onSubmitEditing={handleSearch}
@@ -342,7 +361,7 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.sportsList}
         />
 
-        <Text style={styles.sectionTitle}>מגרשים באיזורך:</Text>
+        <Text style={styles.sectionTitle}>מגרשים:</Text>
 
         {hint ? <Text style={styles.hint}>{hint}</Text> : null}
 

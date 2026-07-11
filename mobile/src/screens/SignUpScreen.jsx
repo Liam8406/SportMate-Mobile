@@ -5,6 +5,9 @@ import {
   TextInput,
   TouchableOpacity,
   Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -123,108 +126,118 @@ async function handleRegister() {
   }
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../Images/SportMate.png")}
-        style={styles.logo}
-      />
-
-      <Text style={styles.title}>הרשמה</Text>
-
-      <TextInput
-        style={styles.input}
-        placeholder="שם מלא"
-        placeholderTextColor="#333"
-        value={username}
-        onChangeText={setUsername}
-        textAlign={username.length === 0 ? "right" : "left"}
-        writingDirection="ltr"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="אימייל"
-        placeholderTextColor="#333"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-        textAlign={email.length === 0 ? "right" : "left"}
-        writingDirection="ltr"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="טלפון"
-        placeholderTextColor="#333"
-        value={phone}
-        onChangeText={(text) =>
-          setPhone(text.replace(/[^0-9]/g, ""))
-        }
-        keyboardType="number-pad"
-        maxLength={10}
-        textAlign={phone.length === 0 ? "right" : "left"}
-        writingDirection="ltr"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="גיל"
-        placeholderTextColor="#333"
-        value={age}
-        onChangeText={(text) =>
-          setAge(text.replace(/[^0-9]/g, ""))
-        }
-        keyboardType="number-pad"
-        maxLength={3}
-        textAlign={age.length === 0 ? "right" : "left"}
-        writingDirection="ltr"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="סיסמה"
-        placeholderTextColor="#333"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        textAlign={password.length === 0 ? "right" : "left"}
-        writingDirection="ltr"
-      />
-
-      {message !== "" && (
-        <Text
-          style={[
-            styles.message,
-            { color: messageColor },
-          ]}
+    <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+        <ScrollView
+            contentContainerStyle={{ flexGrow: 1 }}
+            keyboardShouldPersistTaps="handled"
         >
-          {message}
-        </Text>
-      )}
+        <View style={styles.container}>
+        <Image
+            source={require("../Images/SportMate.png")}
+            style={styles.logo}
+        />
 
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleRegister}
-      >
-        <Text style={styles.buttonText}>
-          הרשמה
-        </Text>
-      </TouchableOpacity>
+        <Text style={styles.title}>הרשמה</Text>
 
-      <View style={styles.bottomContainer}>
-        <Text style={styles.bottomText}>
-          יש לך חשבון קיים?
-        </Text>
+        <TextInput
+            style={styles.input}
+            placeholder="שם מלא"
+            placeholderTextColor="#333"
+            value={username}
+            onChangeText={setUsername}
+            textAlign={username.length === 0 ? "right" : "left"}
+            writingDirection="ltr"
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="אימייל"
+            placeholderTextColor="#333"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            textAlign={email.length === 0 ? "right" : "left"}
+            writingDirection="ltr"
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="טלפון"
+            placeholderTextColor="#333"
+            value={phone}
+            onChangeText={(text) =>
+            setPhone(text.replace(/[^0-9]/g, ""))
+            }
+            keyboardType="number-pad"
+            maxLength={10}
+            textAlign={phone.length === 0 ? "right" : "left"}
+            writingDirection="ltr"
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="גיל"
+            placeholderTextColor="#333"
+            value={age}
+            onChangeText={(text) =>
+            setAge(text.replace(/[^0-9]/g, ""))
+            }
+            keyboardType="number-pad"
+            maxLength={3}
+            textAlign={age.length === 0 ? "right" : "left"}
+            writingDirection="ltr"
+        />
+
+        <TextInput
+            style={styles.input}
+            placeholder="סיסמה"
+            placeholderTextColor="#333"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            textAlign={password.length === 0 ? "right" : "left"}
+            writingDirection="ltr"
+        />
+
+        {message !== "" && (
+            <Text
+            style={[
+                styles.message,
+                { color: messageColor },
+            ]}
+            >
+            {message}
+            </Text>
+        )}
 
         <TouchableOpacity
-          onPress={() => navigation.navigate("Login")}
+            style={styles.button}
+            onPress={handleRegister}
         >
-          <Text style={styles.link}>
-            התחבר
-          </Text>
+            <Text style={styles.buttonText}>
+            הרשמה
+            </Text>
         </TouchableOpacity>
-      </View>
-    </View>
+
+        <View style={styles.bottomContainer}>
+            <Text style={styles.bottomText}>
+            יש לך חשבון קיים?
+            </Text>
+
+            <TouchableOpacity
+            onPress={() => navigation.navigate("Login")}
+            >
+            <Text style={styles.link}>
+                התחבר
+            </Text>
+            </TouchableOpacity>
+        </View>
+        </View>
+        </ScrollView>
+    </KeyboardAvoidingView>
   );
 }

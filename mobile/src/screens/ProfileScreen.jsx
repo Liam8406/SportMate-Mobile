@@ -215,7 +215,7 @@ export default function ProfileScreen({ navigation }) {
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.safeArea}
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">

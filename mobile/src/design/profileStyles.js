@@ -8,7 +8,8 @@ export default function createStyles(colors) {
     },
 
     content: {
-      paddingBottom: 34,
+      flexGrow: 1,
+      paddingBottom: 30,
     },
 
     loadingScreen: {

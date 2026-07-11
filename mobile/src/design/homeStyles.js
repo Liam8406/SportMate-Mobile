@@ -115,16 +115,13 @@ export default function createStyles(colors) {
     },
 
     sportsList: {
+      justifyContent: "center",
       alignItems: "center",
-      gap: 20,
-      paddingHorizontal: 18,
-      paddingBottom: 18,
+      paddingHorizontal: 34,
     },
 
     sportItem: {
-      alignItems: "center",
-      justifyContent: "center",
-      width: 66,
+      flex: 0.05,
     },
 
     sportCircle: {
