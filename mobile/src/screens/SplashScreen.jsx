@@ -18,7 +18,8 @@ export default function SplashScreen({ navigation }) {
         index: 0,
         routes: [{ name: "Home" }],
       });
-    } else {
+    } 
+    else {
       navigation.reset({
         index: 0,
         routes: [{ name: "Login" }],

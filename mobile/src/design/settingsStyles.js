@@ -118,5 +118,14 @@ export default function createStyles(colors) {
       marginTop: 12,
       fontWeight: "600",
     },
+
+    logoutButton: {
+
+    },
+
+    logoutButtonText: {
+
+    },
+    
   });
 }

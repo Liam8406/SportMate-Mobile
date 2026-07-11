@@ -293,6 +293,23 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
+    logoutButton: {
+      alignItems: "center",
+      backgroundColor: colors.danger,
+      borderRadius: 13,
+      height: 45,
+      justifyContent: "center",
+      marginTop: 15,
+    },
+
+    logoutButtonText: {
+      color: "#FFFFFF",
+      fontSize: 15,
+      fontWeight: "800",
+      textAlign: "center",
+      writingDirection: "rtl",
+    },
+
     errorText: {
       color: colors.error,
       fontSize: 14,

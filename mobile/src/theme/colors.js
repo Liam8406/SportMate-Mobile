@@ -34,4 +34,6 @@ export const darkColors = {
   error: "#EF4444",
 
   selected: "#1D4ED8",
+
+  danger: "#b91c1c",
 };

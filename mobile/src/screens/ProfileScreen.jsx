@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ActivityIndicator,
   Image,
@@ -182,8 +183,23 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
-  const logout = async()=>{
-    
+  async function handleLogout() {
+    try {
+      await api.post("/logout");
+
+      await AsyncStorage.removeItem("token");
+
+      setUser(null);
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    }
+    catch (err) {
+      console.log(err.message);
+      showMessage("error", "לא היה ניתן לבצע התנתקות");
+    }
   }
 
   const avatarUri = pickedImage?.uri || user?.avatar || null;
@@ -319,6 +335,12 @@ export default function ProfileScreen({ navigation }) {
           <TouchableOpacity style={styles.passwordButton} onPress={changePassword} disabled={loading}>
             <Text style={styles.passwordButtonText}>
               {loading ? "מעדכן..." : "עדכון סיסמה"}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.logoutButton} onPress={handleLogout} disabled={loading}>
+            <Text style={styles.logoutButtonText}>
+              {loading ? "מתנתק..." : "התנתקות"}
             </Text>
           </TouchableOpacity>
         </View>
