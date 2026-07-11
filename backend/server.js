@@ -42,7 +42,7 @@ function auth(req, res, next) {
 
   if (!authHeader) {
     return res.status(401).json({
-      error: "Not logged in",
+      error: "לא מחובר",
     });
   }
 
@@ -50,7 +50,7 @@ function auth(req, res, next) {
 
   if (!token) {
     return res.status(401).json({
-      error: "Not logged in",
+      error: "לא מחובר",
     });
   }
 
@@ -64,7 +64,7 @@ function auth(req, res, next) {
     next();
   } catch {
     res.status(401).json({
-      error: "Invalid token",
+      error: "טוקן לא נכון",
     });
   }
 }
@@ -114,11 +114,11 @@ app.post("/register", async (req, res) => {
   } 
   catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ error: "Email already exists" });
+      return res.status(400).json({ error: "אימייל כבר קיים" });
     }
 
     console.error("Register error:", err);
-    res.status(500).json({ error: "Registration failed" });
+    res.status(500).json({ error: "רישום נכשל" });
   }
 });
 
@@ -225,19 +225,19 @@ app.put("/change-password", auth, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
   if (!currentPassword || !newPassword) {
-    return res.status(400).json({ error: "All fields required" });
+    return res.status(400).json({ error: "נא למלא את כל השדות" });
   }
 
   const user = await User.findById(req.userId);
   const ok = await bcrypt.compare(currentPassword, user.password);
   if (!ok) {
-    return res.status(401).json({ error: "Current password incorrect" });
+    return res.status(401).json({ error: "סיסמה נוכחית אינה נכונה" });
   }
 
   user.password = await bcrypt.hash(newPassword, 10);
   await user.save();
 
-  res.json({ status: "password updated" });
+  res.json({ status: "סיסמה עודכנה בהצלחה" });
 });
 
 app.get("/users/:id", auth, async (req, res) => {
@@ -247,12 +247,12 @@ app.get("/users/:id", auth, async (req, res) => {
     );
 
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ error: "משתמש לא נמצא" });
     }
 
     res.json(user);
   } catch {
-    res.status(400).json({ error: "Invalid user id" });
+    res.status(400).json({ error: "מזהה משתמש לא נכון" });
   }
 });
 
@@ -271,7 +271,7 @@ app.delete("/profile", auth, async (req, res) => {
   } 
   catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to delete user" });
+    res.status(500).json({ error: "מחיקת משתמש נכשלה" });
   }
 });
 

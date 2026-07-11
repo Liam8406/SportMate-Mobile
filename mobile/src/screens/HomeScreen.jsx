@@ -385,16 +385,34 @@ export default function HomeScreen({ navigation }) {
       />
 
       <View style={styles.bottomNav}>
-        <TouchableOpacity activeOpacity={0.85} style={styles.navItem} onPress={resetToMyLocation}>
-          <Text style={[styles.navIcon, styles.navIconActive]}>⌂</Text>
+        <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.navItem}
+            onPress={resetToMyLocation}
+        >
+            <Text style={[styles.navIcon, styles.navIconActive]}>
+                ⌂
+            </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.navItem}
-          onPress={() => navigation.navigate("Profile")}
+            activeOpacity={0.85}
+            style={styles.navItem}
+            onPress={() => navigation.navigate("Settings")}
         >
-          <Text style={styles.navIcon}>●</Text>
+            <Text style={styles.navIcon}>
+                ⚙
+            </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.navItem}
+            onPress={() => navigation.navigate("Profile")}
+        >
+            <Text style={styles.navIcon}>
+            ●
+            </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
