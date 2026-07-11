@@ -1,16 +1,30 @@
 import React, { useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar, StyleSheet, View } from "react-native";
 
 import BrandLogo from "../components/BrandLogo";
 
 export default function SplashScreen({ navigation }) {
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      navigation.replace("Login");
-    }, 1400);
 
-    return () => clearTimeout(timeout);
-  }, [navigation]);
+    useEffect(() => {
+    checkLogin();
+  }, []);
+
+  async function checkLogin() {
+    const token = await AsyncStorage.getItem("token");
+
+    if (token) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Home" }],
+      });
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    }
+  }
 
   return (
     <View style={styles.container}>

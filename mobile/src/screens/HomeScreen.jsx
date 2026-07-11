@@ -14,7 +14,8 @@ import {
 import * as Location from "expo-location";
 
 import api from "../../api";
-import styles from "../design/homeStyles";
+import createStyles from "../design/homeStyles";
+import { useTheme } from "../theme/useTheme";
 
 const sports = [
   { id: "football", label: "כדורגל", value: "Football", icon: "⚽", color: "#6DDD73" },
@@ -79,7 +80,11 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hint, setHint] = useState("");
+  const [pickedImage, setPickedImage] = useState(null);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
+  const avatarUri = pickedImage?.uri || user?.avatar || null;
   const didInitRef = useRef(false);
   const canInteract = !(loading || loadingMore);
 
@@ -310,7 +315,7 @@ export default function HomeScreen({ navigation }) {
             onChangeText={setQuery}
             editable={canInteract}
             placeholder="חיפוש באיזורך"
-            placeholderTextColor="#9d9d9d"
+            placeholderTextColor={colors.secondaryText}
             returnKeyType="search"
             onSubmitEditing={handleSearch}
             style={styles.searchInput}
@@ -343,7 +348,7 @@ export default function HomeScreen({ navigation }) {
 
         {loading && fields.length === 0 ? (
           <View style={styles.loadingBox}>
-            <ActivityIndicator color="#2f64c7" />
+            <ActivityIndicator color={colors.primary} />
             <Text style={styles.loadingText}>טוען מגרשים...</Text>
           </View>
         ) : null}
@@ -379,7 +384,7 @@ export default function HomeScreen({ navigation }) {
           <RefreshControl
             refreshing={loading && fields.length > 0}
             onRefresh={() => fetchFields(activeCenter, selectedSport, "")}
-            tintColor="#2f64c7"
+            tintColor={colors.primary}
           />
         }
       />
@@ -409,12 +414,23 @@ export default function HomeScreen({ navigation }) {
             activeOpacity={0.85}
             style={styles.navItem}
             onPress={() => navigation.navigate("Profile")}
-        >
-            <Text style={styles.navIcon}>
-            ●
-            </Text>
-        </TouchableOpacity>
-      </View>
+            >
+            <View style={styles.navAvatarWrap}>
+                {avatarUri ? (
+                <Image
+                    source={{ uri: avatarUri }}
+                    style={styles.navAvatar}
+                />
+                ) : (
+                <View style={styles.navAvatarFallback}>
+                    <Text style={styles.navAvatarInitial}>
+                    {(user?.username || "S").slice(0, 1).toUpperCase()}
+                    </Text>
+                </View>
+                )}
+            </View>
+            </TouchableOpacity>
+        </View>
     </SafeAreaView>
   );
 }

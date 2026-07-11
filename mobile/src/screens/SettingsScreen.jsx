@@ -8,16 +8,25 @@ import {
   Switch,
 } from "react-native";
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../../api";
-import styles from "../design/settingsStyles";
+import createStyles from "../design/settingsStyles";
+import { useTheme } from "../theme/useTheme";
 
-const sports = ["None", "Football", "Basketball", "Volleyball", "Tennis"];
+const sports = [
+  { value: "None", label: "ללא" },
+  { value: "Football", label: "כדורגל" },
+  { value: "Basketball", label: "כדורסל" },
+  { value: "Volleyball", label: "כדורעף" },
+  { value: "Tennis", label: "טניס" },
+];
 
 export default function SettingsScreen({ navigation }) {
   const [favSport, setFavSport] = useState("None");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+
+  const { colors, darkMode, toggleTheme } = useTheme();
+  const styles = createStyles(colors);
 
   useEffect(() => {
     loadPreferences();
@@ -27,11 +36,11 @@ export default function SettingsScreen({ navigation }) {
     try {
       const res = await api.get("/profile");
       setFavSport(res.data?.favSport ?? "None");
-    } catch {
+    } 
+    catch {
       setError("טעינת ההעדפות נכשלה");
     }
   }
-
 
   async function savePreferences() {
     setError("");
@@ -43,7 +52,8 @@ export default function SettingsScreen({ navigation }) {
       });
 
       setSuccess("ההעדפות נשמרו בהצלחה");
-    } catch {
+    } 
+    catch {
       setError("שמירת ההעדפות נכשלה");
     }
   }
@@ -52,7 +62,10 @@ export default function SettingsScreen({ navigation }) {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
         </View>
@@ -66,6 +79,15 @@ export default function SettingsScreen({ navigation }) {
             <Text style={styles.rowText}>
               מצב כהה
             </Text>
+                        <Switch
+              value={darkMode}
+              onValueChange={toggleTheme}
+              trackColor={{
+                false: "#D1D5DB",
+                true: colors.primary,
+              }}
+              thumbColor="#FFFFFF"
+            />
           </View>
         </View>
 
@@ -75,36 +97,50 @@ export default function SettingsScreen({ navigation }) {
           </Text>
 
           {sports.map((sport) => {
-            const active = (favSport || "None") === sport;
+            const active = (favSport || "None") === sport.value;
 
             return (
               <TouchableOpacity
-                key={sport}
+                key={sport.value}
                 style={[
                   styles.sportItem,
                   active && styles.sportItemActive,
                 ]}
-                onPress={() => setFavSport(sport)}
+                onPress={() => setFavSport(sport.value)}
               >
                 <Text
                   style={[
                     styles.sportText,
-                    active && styles.sportTextActive
+                    active && styles.sportTextActive,
                   ]}
                 >
-                  {sport}
+                  {sport.label}
                 </Text>
               </TouchableOpacity>
             );
           })}
         </View>
 
-        <TouchableOpacity style={styles.saveButton} onPress={savePreferences}>
-          <Text style={styles.saveText}>שמירת העדפות</Text>
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={savePreferences}
+        >
+          <Text style={styles.saveText}>
+            שמירת העדפות
+          </Text>
         </TouchableOpacity>
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
-        {success ? <Text style={styles.success}>{success}</Text> : null}
+        {error ? (
+          <Text style={styles.error}>
+            {error}
+          </Text>
+        ) : null}
+
+        {success ? (
+          <Text style={styles.success}>
+            {success}
+          </Text>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );

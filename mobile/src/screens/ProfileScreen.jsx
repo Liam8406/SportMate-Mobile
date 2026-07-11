@@ -13,7 +13,8 @@ import {
 import * as ImagePicker from "expo-image-picker";
 
 import api from "../../api";
-import styles from "../design/profileStyles";
+import createStyles from "../design/profileStyles";
+import { useTheme } from "../theme/useTheme";
 
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -28,6 +29,8 @@ export default function ProfileScreen({ navigation }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const { colors } = useTheme();
+  const styles = createStyles(colors);
 
   const fillForm = useCallback((profile) => {
     setUsername(profile?.username || "");
@@ -179,6 +182,10 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  const logout = async()=>{
+    
+  }
+
   const avatarUri = pickedImage?.uri || user?.avatar || null;
 
   if (loading && !user) {
@@ -241,15 +248,21 @@ export default function ProfileScreen({ navigation }) {
 
           {!editMode ? (
             <>
-              <InfoRow label="שם משתמש" value={user?.username} />
-              <InfoRow label="אימייל" value={user?.email} />
-              <InfoRow label="טלפון" value={user?.phone || "-"} />
-              <InfoRow label="גיל" value={user?.age || "-"} />
+              <InfoRow styles={styles} label="שם משתמש" value={user?.username} />
+              <InfoRow styles={styles} label="אימייל" value={user?.email} />
+              <InfoRow styles={styles} label="טלפון" value={user?.phone || "-"} />
+              <InfoRow styles={styles} label="גיל" value={user?.age || "-"} />
             </>
           ) : (
             <>
-              <ProfileInput label="שם משתמש" value={username} onChangeText={setUsername} />
+              <ProfileInput 
+                styles={styles} 
+                label="שם משתמש" 
+                value={username} 
+                onChangeText={setUsername} 
+              />
               <ProfileInput
+                styles={styles}
                 label="אימייל"
                 value={email}
                 onChangeText={setEmail}
@@ -257,6 +270,7 @@ export default function ProfileScreen({ navigation }) {
                 keyboardType="email-address"
               />
               <ProfileInput
+                styles={styles}
                 label="טלפון"
                 value={phone}
                 onChangeText={(text) => setPhone(text.replace(/[^0-9]/g, ""))}
@@ -264,6 +278,7 @@ export default function ProfileScreen({ navigation }) {
                 maxLength={10}
               />
               <ProfileInput
+                styles={styles}
                 label="גיל"
                 value={age}
                 onChangeText={(text) => setAge(text.replace(/[^0-9]/g, ""))}
@@ -287,12 +302,14 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.cardTitle}>שינוי סיסמה</Text>
 
           <ProfileInput
+            styles={styles}
             label="סיסמה נוכחית"
             value={currentPassword}
             onChangeText={setCurrentPassword}
             secureTextEntry
           />
           <ProfileInput
+            styles={styles}
             label="סיסמה חדשה"
             value={newPassword}
             onChangeText={setNewPassword}
@@ -313,19 +330,27 @@ export default function ProfileScreen({ navigation }) {
   );
 }
 
-function InfoRow({ label, value }) {
+function InfoRow({ styles, label, value }) {
   return (
     <View style={styles.infoRow}>
-      <Text style={styles.infoValue}>{value || "-"}</Text>
-      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>
+        {value || "-"}
+      </Text>
+
+      <Text style={styles.infoLabel}>
+        {label}
+      </Text>
     </View>
   );
 }
 
-function ProfileInput({ label, ...props }) {
+function ProfileInput({ styles, label, ...props }) {
   return (
     <View style={styles.inputGroup}>
-      <Text style={styles.inputLabel}>{label}</Text>
+      <Text style={styles.inputLabel}>
+        {label}
+      </Text>
+
       <TextInput
         {...props}
         placeholderTextColor="#8F8F8F"
