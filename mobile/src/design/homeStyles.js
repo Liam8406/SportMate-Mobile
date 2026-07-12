@@ -319,7 +319,7 @@ export default function createStyles(colors) {
     navIcon: {
       color: colors.secondaryText,
       fontSize: 33,
-      fontWeight: "900",
+      fontWeight: "500",
       lineHeight: 36,
     },
     

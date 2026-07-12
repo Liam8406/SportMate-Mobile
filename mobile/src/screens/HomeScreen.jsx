@@ -5,12 +5,12 @@ import {
   FlatList,
   Image,
   RefreshControl,
-  SafeAreaView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import * as Location from "expo-location";
 
 import api from "../../api";
@@ -81,12 +81,11 @@ export default function HomeScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hint, setHint] = useState("");
-  const [pickedImage, setPickedImage] = useState(null);
   const [locationName, setLocationName] = useState("");
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
-  const avatarUri = pickedImage?.uri || user?.avatar || null;
+  const avatarUri = user?.avatar || null;
   const didInitRef = useRef(false);
   const canInteract = !(loading || loadingMore);
 
@@ -135,7 +134,8 @@ export default function HomeScreen({ navigation }) {
         const items = response.data?.items || [];
         const next = response.data?.nextPageToken || null;
 
-        setFields((current) => (token ? [...current, ...items] : items));
+        // Larger-radius results already include the fields from smaller radii.
+        setFields(items);
         setNextPageToken(next);
 
         if (items.length === 0 && !token) {
@@ -188,6 +188,11 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
+
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", fetchProfile);
+    return unsubscribe;
+  }, [fetchProfile, navigation]);
 
   useEffect(() => {
     if (didInitRef.current) return;
@@ -351,7 +356,7 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.sectionTitle}>סוגי מגרשים:</Text>
 
         <FlatList
-          data={sports}
+          data={[...sports].sort((a, b) => (a.id === "all" ? -1 : b.id === "all" ? 1 : 0))}
           keyExtractor={(item) => item.id}
           horizontal
           inverted

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   View,
   Text,
   TouchableOpacity,
   Switch,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import api from "../../api";
 import createStyles from "../design/settingsStyles";

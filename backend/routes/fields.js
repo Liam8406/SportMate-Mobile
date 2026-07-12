@@ -7,7 +7,8 @@ const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
 const NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "SportMate/1.0";
 
-const PAGE_SIZE = 4;
+const MIN_FIELDS = 4;
+const SEARCH_RADII = [2000, 5000, 10000, 20000];
 const DUP_METERS = 120;
 
 const SPORT_TAGS = {
@@ -197,11 +198,17 @@ router.get("/fields", async (req, res) => {
 
     console.log(`[FIELDS] Request: search=(${searchLat.toFixed(4)}, ${searchLng.toFixed(4)}), user=(${userLat.toFixed(4)}, ${userLng.toFixed(4)}), sport=${sport}`);
 
-    // Progressive radius search
-    const radii = [2000, 5000, 10000];
+    const requestedRadiusIndex = Number.parseInt(req.query.pageToken, 10);
+    const isLoadMore = Number.isInteger(requestedRadiusIndex);
+    const startIndex = isLoadMore
+      ? Math.min(Math.max(requestedRadiusIndex, 0), SEARCH_RADII.length - 1)
+      : 0;
     let allFields = [];
+    let usedRadiusIndex = startIndex;
 
-    for (const radius of radii) {
+    for (let radiusIndex = startIndex; radiusIndex < SEARCH_RADII.length; radiusIndex += 1) {
+      const radius = SEARCH_RADII[radiusIndex];
+      usedRadiusIndex = radiusIndex;
       console.log(`[FIELDS] Trying radius ${radius}m`);
       
       const elements = await queryOverpass(searchLat, searchLng, radius, sportFilter);
@@ -253,32 +260,34 @@ router.get("/fields", async (req, res) => {
       const deduped = dedupe(processed);
       console.log(`[FIELDS] After deduplication: ${deduped.length} unique fields`);
 
-      // If we have any results, use them
-      if (deduped.length > 0) {
-        allFields = deduped;
-        break; // Stop searching further radii
-      }
+      allFields = deduped;
+
+      // Initial loading expands until at least four fields are available.
+      // Loading more expands exactly one additional radius.
+      if (isLoadMore || deduped.length >= MIN_FIELDS) break;
     }
 
-    // Return up to PAGE_SIZE results
     if (allFields.length > 0) {
-      const items = allFields.slice(0, PAGE_SIZE);
-
-      // Reverse geocode missing addresses
-      for (const f of items) {
-        if (!f.address || f.address === "") {
-          f.address = await reverseGeocode(f.lat, f.lng);
-        }
-      }
+      const items = allFields;
 
       console.log(`[FIELDS] Success: ${items.length} fields, closest=${items[0].name} (${items[0].distanceKm.toFixed(2)}km), time=${Date.now() - t0}ms`);
 
-      return res.json({ items, nextPageToken: null });
+      return res.json({
+        items,
+        nextPageToken: usedRadiusIndex < SEARCH_RADII.length - 1
+          ? String(usedRadiusIndex + 1)
+          : null,
+        searchRadius: SEARCH_RADII[usedRadiusIndex],
+      });
     }
 
     console.log(`[FIELDS] No results found, time=${Date.now() - t0}ms`);
 
-    res.json({ items: [], nextPageToken: null });
+    res.json({
+      items: [],
+      nextPageToken: null,
+      searchRadius: SEARCH_RADII[usedRadiusIndex],
+    });
 
   } catch (err) {
     console.error("[FIELDS] FATAL ERROR:", err);
