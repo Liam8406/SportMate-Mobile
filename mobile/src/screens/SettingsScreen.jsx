@@ -67,7 +67,7 @@ export default function SettingsScreen({ navigation }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backText}>‹</Text>
+            <Text style={styles.backText}>›</Text>
           </TouchableOpacity>
         </View>
 

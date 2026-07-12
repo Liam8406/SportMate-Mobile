@@ -38,6 +38,7 @@ export default function createStyles(colors) {
 
     backButton: {
       alignItems: "center",
+      alignSelf: "flex-end",
       height: 44,
       justifyContent: "center",
       width: 44,
