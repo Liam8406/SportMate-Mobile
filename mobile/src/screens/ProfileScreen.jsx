@@ -17,6 +17,7 @@ import api from "../../api";
 import createStyles from "../design/profileStyles";
 import { useTheme } from "../theme/useTheme";
 
+// Show and edit the current user's account.
 export default function ProfileScreen({ navigation }) {
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
@@ -40,6 +41,7 @@ export default function ProfileScreen({ navigation }) {
     setAge(profile?.age ? String(profile.age) : "");
   }, []);
 
+  // Load the latest profile from the server.
   const loadProfile = useCallback(async () => {
     setLoading(true);
     setError("");
@@ -125,6 +127,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  // Validate and save editable profile fields.
   const saveDetails = async () => {
     setLoading(true);
     setError("");
@@ -157,6 +160,7 @@ export default function ProfileScreen({ navigation }) {
     setSuccess("");
   };
 
+  // Send both passwords to the protected route.
   const changePassword = async () => {
     if (!currentPassword || !newPassword) {
       showMessage("error", "יש למלא את שתי הסיסמאות");
@@ -183,6 +187,7 @@ export default function ProfileScreen({ navigation }) {
     }
   };
 
+  // Clear the session and return to login.
   async function handleLogout() {
     try {
       await api.post("/logout");
@@ -226,7 +231,7 @@ export default function ProfileScreen({ navigation }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backText}>›</Text>
+            <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
         </View>
 

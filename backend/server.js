@@ -18,6 +18,7 @@ const scheduleRoutes = require("./routes/schedule");
 
 const app = express();
 const PORT = process.env.PORT || 4000;
+// Use public DNS servers when MongoDB SRV lookup needs them.
 const MONGO_DNS_SERVERS = (process.env.MONGO_DNS_SERVERS || "8.8.8.8,1.1.1.1")
   .split(",")
   .map((server) => server.trim())
@@ -37,6 +38,7 @@ app.use(
   })
 );
 
+// Read and verify the login token.
 function auth(req, res, next) {
   const authHeader = req.headers.authorization;
 
@@ -87,6 +89,7 @@ const upload = multer({
   },
 });
 
+// Create a new user account.
 app.post("/register", async (req, res) => {
   const { username, email, phone, password, age } = req.body;
 
@@ -122,6 +125,7 @@ app.post("/register", async (req, res) => {
   }
 });
 
+// Check credentials and return a login cookie.
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
@@ -152,6 +156,7 @@ app.post("/logout", (_, res) => {
   res.json({ status: "logged out" });
 });
 
+// Return the current user's profile.
 app.get("/profile", auth, async (req, res) => {
   const user = await User.findById(req.userId).select(
     "username email phone age favSport avatar"
@@ -221,6 +226,7 @@ app.put("/profile", auth, async (req, res) => {
   }
 });
 
+// Replace the password after checking the current one.
 app.put("/change-password", auth, async (req, res) => {
   const { currentPassword, newPassword } = req.body;
 
@@ -256,6 +262,7 @@ app.get("/users/:id", auth, async (req, res) => {
   }
 });
 
+// Delete the account and related game sessions.
 app.delete("/profile", auth, async (req, res) => {
   try {
     const userId = req.userId;
@@ -275,6 +282,7 @@ app.delete("/profile", auth, async (req, res) => {
   }
 });
 
+// Convert a place name into map coordinates.
 app.get("/geocode", async (req, res) => {
   try {
     const q = String(req.query.q || "").trim();
@@ -307,6 +315,7 @@ app.get("/geocode", async (req, res) => {
 app.use("/api", fieldsRoutes);
 app.use("/schedule", scheduleRoutes);
 
+// Connect to MongoDB before accepting requests.
 async function startServer() {
   if (!process.env.MONGO_URI) {
     console.error("MongoDB connection failed: missing MONGO_URI");

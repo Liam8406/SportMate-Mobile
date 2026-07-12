@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 
+// Store one scheduled game and its players.
 const SessionSchema = new mongoose.Schema({
   fieldId: { type: String, required: true, index: true },
   fieldName: String,
@@ -25,6 +26,7 @@ const SessionSchema = new mongoose.Schema({
   }],
 }, { timestamps: true });
 
+// Remove a game from MongoDB after it ends.
 SessionSchema.index({ endTime: 1 }, { expireAfterSeconds: 0 });
 
 module.exports = mongoose.model("Session", SessionSchema);

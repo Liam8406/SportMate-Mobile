@@ -1,6 +1,7 @@
 import React from "react";
 import { Image, StyleSheet, View } from "react-native";
 
+// Display the shared SportMate logo.
 export default function BrandLogo({ size = 320, style }) {
   return (
     <View style={[styles.container, style]}>

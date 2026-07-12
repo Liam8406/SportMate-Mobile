@@ -1,3 +1,4 @@
+// Shared colors and images for each sport.
 const sportLooks = {
   Football: {
     label: "מגרש כדורגל",

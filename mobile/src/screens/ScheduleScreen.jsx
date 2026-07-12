@@ -18,6 +18,7 @@ import { useTheme } from "../theme/useTheme";
 import api from "../../api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+// Keep date values in the device's local timezone.
 const formatLocalDate = (value) => {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, "0");
@@ -32,6 +33,7 @@ const getTomorrow = () => {
   return tomorrow;
 };
 
+// Manage games for the selected field.
 export default function ScheduleScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -61,6 +63,7 @@ export default function ScheduleScreen({ navigation, route }) {
     fetchData();
   }, []);
 
+  // Load the user and available games together.
   const fetchData = async () => {
     try {
       const userRes = await api.get("/profile");
@@ -75,6 +78,7 @@ export default function ScheduleScreen({ navigation, route }) {
     }
   };
 
+  // Create a game using the chosen date and time.
   const createSession = async () => {
     try {
       setError("");
@@ -120,6 +124,7 @@ export default function ScheduleScreen({ navigation, route }) {
     }
   };
 
+  // Join an existing game when space is available.
   const joinSession = async (id) => {
     try {
       const token = await AsyncStorage.getItem("token");
@@ -179,7 +184,7 @@ export default function ScheduleScreen({ navigation, route }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.headerIcon}>›</Text>
+            <Text style={styles.headerIcon}>‹</Text>
           </TouchableOpacity>
 
           <View style={styles.overlay}>

@@ -14,6 +14,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../design/authStyles";
 import api from "../../api";
 
+// Collect details for a new account.
 export default function SignUpScreen({ navigation }) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -24,6 +25,7 @@ export default function SignUpScreen({ navigation }) {
   const [message, setMessage] = useState("");
   const [messageColor, setMessageColor] = useState("red");
 
+// Validate the form before registration.
 async function handleRegister() {
     setMessage("");
 

@@ -20,6 +20,7 @@ import createStyles from "../design/homeStyles";
 import sportLooks from "../lib/sportLooks";
 import { useTheme } from "../theme/useTheme";
 
+// Categories shown in the homepage filter.
 const sports = [
   { id: "football", label: "כדורגל", value: "Football", icon: "⚽", color: "#6DDD73" },
   { id: "tennis", label: "טניס", value: "Tennis", icon: "🎾", color: "#ECFF2E" },
@@ -27,11 +28,15 @@ const sports = [
   { id: "basketball", label: "כדורסל", value: "Basketball", icon: "🏀", color: "#FF842F" },
 ];
 
+const getSupportedSport = (value) =>
+  sports.some((sport) => sport.value === value) ? value : null;
+
 const toNumber = (value) => {
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 };
 
+// Ask for permission and read the current location.
 const getCoords = async () => {
   const { status } = await Location.requestForegroundPermissionsAsync();
 
@@ -69,18 +74,23 @@ export default function HomeScreen({ navigation }) {
   const didInitRef = useRef(false);
   const canInteract = !(loading || loadingMore);
 
+  // Load the user and their favorite sport.
   const fetchProfile = useCallback(async () => {
     try {
       const response = await api.get("/profile");
 
       if (!response.data?.error) {
         setUser(response.data);
+        return response.data;
       }
     } catch {
       setUser(null);
     }
+
+    return null;
   }, []);
 
+  // Load fields for the selected category.
   const fetchFields = useCallback(
     async (searchCoords, sport, token = "", originOverride = null) => {
       if (!searchCoords) return;
@@ -149,8 +159,12 @@ export default function HomeScreen({ navigation }) {
     [gpsCenter]
   );
 
-  const resetToMyLocation = useCallback(async () => {
+  const resetToMyLocation = useCallback(async (preferredSport = null) => {
     if (!canInteract) return;
+
+    const startingSport = getSupportedSport(
+      typeof preferredSport === "string" ? preferredSport : null
+    );
 
     setHint("");
 
@@ -158,10 +172,10 @@ export default function HomeScreen({ navigation }) {
       const gps = await getCoords();
       setGpsCenter(gps);
       setActiveCenter(gps);
-      setSelectedSport(null);
+      setSelectedSport(startingSport);
       setQuery("");
 
-      const fieldsPromise = fetchFields(gps, null, "", gps);
+      const fieldsPromise = fetchFields(gps, startingSport, "", gps);
       const places = await Location.reverseGeocodeAsync({
         latitude: gps.lat,
         longitude: gps.lng,
@@ -185,10 +199,6 @@ export default function HomeScreen({ navigation }) {
   }, [canInteract, fetchFields]);
 
   useEffect(() => {
-    fetchProfile();
-  }, [fetchProfile]);
-
-  useEffect(() => {
     const unsubscribe = navigation.addListener("focus", fetchProfile);
     return unsubscribe;
   }, [fetchProfile, navigation]);
@@ -197,9 +207,17 @@ export default function HomeScreen({ navigation }) {
     if (didInitRef.current) return;
 
     didInitRef.current = true;
-    resetToMyLocation();
-  }, [resetToMyLocation]);
 
+    // Load the preference before the first field search.
+    const initializeHome = async () => {
+      const profile = await fetchProfile();
+      await resetToMyLocation(profile?.favSport);
+    };
+
+    initializeHome();
+  }, [fetchProfile, resetToMyLocation]);
+
+  // Search around a place entered by the user.
   const handleSearch = async () => {
     const text = query.trim();
 
@@ -255,6 +273,7 @@ export default function HomeScreen({ navigation }) {
     fetchFields(activeCenter, selectedSport, nextPageToken);
   };
 
+  // Open directions from the user to this field.
   const handleOpenMaps = async (field) => {
     const destinationLat = toNumber(field?.lat);
     const destinationLng = toNumber(field?.lng);

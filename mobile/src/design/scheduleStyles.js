@@ -22,7 +22,7 @@ export default function createStyles(colors) {
     backButton: {
       position: "absolute",
       top: 55,
-      right: 20,
+      left: 20,
     },
 
     headerIcon: {

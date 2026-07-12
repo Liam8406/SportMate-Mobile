@@ -11,6 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import styles from "../design/authStyles";
 import api from "../../api";
 
+// Sign in and continue to the homepage.
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,6 +19,7 @@ export default function LoginScreen({ navigation }) {
   const [message, setMessage] = useState("");
   const [messageColor, setMessageColor] = useState("red");
 
+  // Send the login form to the backend.
   async function handleLogin() {
     setMessage("");
 

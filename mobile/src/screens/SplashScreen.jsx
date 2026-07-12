@@ -4,12 +4,14 @@ import { StatusBar, StyleSheet, View } from "react-native";
 
 import BrandLogo from "../components/BrandLogo";
 
+// Show the logo while checking the login state.
 export default function SplashScreen({ navigation }) {
 
     useEffect(() => {
     checkLogin();
   }, []);
 
+  // Continue to the correct first screen.
   async function checkLogin() {
     const [token] = await Promise.all([
       AsyncStorage.getItem("token"),

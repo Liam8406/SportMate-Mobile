@@ -3,6 +3,7 @@ const router = express.Router();
 const Session = require("../models/FieldSchedule");
 const jwt = require("jsonwebtoken");
 
+// Format a date without changing its local day.
 function formatLocalDate(value) {
   const year = value.getFullYear();
   const month = String(value.getMonth() + 1).padStart(2, "0");
@@ -10,6 +11,7 @@ function formatLocalDate(value) {
   return `${year}-${month}-${day}`;
 }
 
+// Protect schedule actions with a login token.
 function auth(req, res, next) {
   const authHeader = req.headers.authorization;
   const bearerToken = authHeader?.startsWith("Bearer ")
@@ -28,6 +30,7 @@ function auth(req, res, next) {
   }
 }
 
+// Load games related to this field and user.
 router.get("/:fieldId", auth, async (req, res) => {
   try {
     const { fieldId } = req.params;
@@ -49,6 +52,7 @@ router.get("/:fieldId", auth, async (req, res) => {
   }
 });
 
+// Validate and create a new game.
 router.post("/create", auth, async (req, res) => {
   try {
     const { fieldId, fieldName, sport, date, startTime, duration } = req.body;
@@ -135,6 +139,7 @@ router.post("/create", auth, async (req, res) => {
   }
 });
 
+// Add the current user to an open game.
 router.post("/:sessionId/join", auth, async (req, res) => {
   try {
     const { sessionId } = req.params;
@@ -163,6 +168,7 @@ router.post("/:sessionId/join", auth, async (req, res) => {
   }
 });
 
+// Allow only the host to delete a game.
 router.delete("/:sessionId", auth, async (req, res) => {
   try {
     const { sessionId } = req.params;

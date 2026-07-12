@@ -12,6 +12,7 @@ import api from "../../api";
 import createStyles from "../design/settingsStyles";
 import { useTheme } from "../theme/useTheme";
 
+// Values available as a favorite sport.
 const sports = [
   { value: "None", label: "ללא" },
   { value: "Football", label: "כדורגל" },
@@ -19,6 +20,7 @@ const sports = [
   { value: "Tennis", label: "טניס" },
 ];
 
+// Manage theme and sport preferences.
 export default function SettingsScreen({ navigation }) {
   const [favSport, setFavSport] = useState("None");
   const [error, setError] = useState("");
@@ -31,6 +33,7 @@ export default function SettingsScreen({ navigation }) {
     loadPreferences();
   }, []);
 
+  // Read saved preferences from the profile.
   async function loadPreferences() {
     try {
       const res = await api.get("/profile");
@@ -41,6 +44,7 @@ export default function SettingsScreen({ navigation }) {
     }
   }
 
+  // Save the selected preferences.
   async function savePreferences() {
     setError("");
     setSuccess("");
@@ -67,7 +71,7 @@ export default function SettingsScreen({ navigation }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.backText}>›</Text>
+            <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
         </View>
 

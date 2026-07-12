@@ -10,6 +10,7 @@ const NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
 const PHOTON_REVERSE_URL = "https://photon.komoot.io/reverse";
 const USER_AGENT = "SportMate/1.0";
 
+// Search farther away until enough fields are found.
 const MIN_FIELDS = 4;
 const SEARCH_RADII = [2000, 5000, 10000, 20000, 35000, 50000];
 const MAX_SEARCH_RADIUS = SEARCH_RADII[SEARCH_RADII.length - 1];
@@ -37,6 +38,7 @@ const toNum = (x) => {
   return Number.isFinite(n) ? n : null;
 };
 
+// Measure the direct distance between coordinates.
 function haversineKm(aLat, aLng, bLat, bLng) {
   const R = 6371;
   const dLat = ((bLat - aLat) * Math.PI) / 180;
@@ -53,6 +55,7 @@ function isClose(a, b) {
   return haversineKm(a.lat, a.lng, b.lat, b.lng) * 1000 <= DUP_METERS;
 }
 
+// Remove duplicate nearby fields.
 function dedupe(list) {
   const out = [];
   for (const item of list) {
@@ -79,6 +82,7 @@ function buildAddress(tags) {
   return full || result || "";
 }
 
+// Find a readable address for coordinates.
 async function reverseGeocode(lat, lng) {
   const key = `${lat.toFixed(5)},${lng.toFixed(5)}`;
   if (reverseCache.has(key)) return reverseCache.get(key);
@@ -132,6 +136,7 @@ async function fillMissingAddresses(items) {
   }
 }
 
+// Request sports fields from OpenStreetMap.
 async function queryOverpass(lat, lng, radius, sportFilter) {
   const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)},${radius},${sportFilter}`;
   
@@ -199,6 +204,7 @@ out center tags;
   throw new Error(`All Overpass providers failed: ${lastError?.message || "unknown error"}`);
 }
 
+// Return nearby fields for the selected sport.
 router.get("/fields", async (req, res) => {
   const t0 = Date.now();
 
