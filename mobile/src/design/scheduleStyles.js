@@ -79,15 +79,6 @@ export default function createStyles(colors) {
       elevation: 4,
     },
 
-    pickerPanel: {
-      backgroundColor: colors.card,
-      borderRadius: 18,
-      marginBottom: 18,
-      overflow: "hidden",
-      padding: 8,
-      elevation: 4,
-    },
-
     pickerModalBackdrop: {
       alignItems: "center",
       backgroundColor: "rgba(0,0,0,0.45)",
@@ -111,6 +102,35 @@ export default function createStyles(colors) {
       marginBottom: 8,
       textAlign: "right",
       writingDirection: "rtl",
+    },
+
+    dateChoices: {
+      gap: 12,
+      marginVertical: 14,
+    },
+
+    dateChoice: {
+      alignItems: "center",
+      borderColor: colors.border,
+      borderRadius: 16,
+      borderWidth: 1,
+      padding: 16,
+    },
+
+    dateChoiceSelected: {
+      backgroundColor: colors.selected,
+      borderColor: colors.primary,
+    },
+
+    dateChoiceText: {
+      color: colors.text,
+      fontSize: 16,
+      fontWeight: "600",
+      writingDirection: "rtl",
+    },
+
+    dateChoiceTextSelected: {
+      color: colors.primary,
     },
 
     pickerConfirmButton: {

@@ -221,37 +221,6 @@ export default function ScheduleScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          {Platform.OS === "android" && showDate ? (
-            <View style={styles.pickerPanel}>
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                minimumDate={new Date()}
-                maximumDate={getTomorrow()}
-                onChange={(event, selectedDate) => {
-                  setShowDate(false);
-                  if (event.type !== "dismissed" && selectedDate) setDate(selectedDate);
-                }}
-              />
-            </View>
-          ) : null}
-
-          {Platform.OS === "android" && showTime ? (
-            <View style={styles.pickerPanel}>
-              <DateTimePicker
-                value={time}
-                mode="time"
-                display="default"
-                is24Hour
-                onChange={(event, selectedTime) => {
-                  setShowTime(false);
-                  if (event.type !== "dismissed" && selectedTime) setTime(selectedTime);
-                }}
-              />
-            </View>
-          ) : null}
-
           <View style={styles.durationCard}>
             <Text style={styles.bookingTitle}>משך משחק</Text>
 
@@ -414,7 +383,7 @@ export default function ScheduleScreen({ navigation, route }) {
 
       </ScrollView>
 
-      {Platform.OS === "ios" ? (
+      {showDate || showTime ? (
         <Modal
           animationType="fade"
           transparent
@@ -430,20 +399,36 @@ export default function ScheduleScreen({ navigation, route }) {
                 {showDate ? "בחירת תאריך" : "בחירת שעת התחלה"}
               </Text>
 
-              <DateTimePicker
-                value={showDate ? date : time}
-                mode={showDate ? "date" : "time"}
-                display="spinner"
-                is24Hour
-                timeZoneName="Asia/Jerusalem"
-                minimumDate={showDate ? new Date() : undefined}
-                maximumDate={showDate ? getTomorrow() : undefined}
-                onChange={(event, value) => {
-                  if (event.type === "dismissed" || !value) return;
-                  if (showDate) setDate(value);
-                  else setTime(value);
-                }}
-              />
+              {showDate ? (
+                <View style={styles.dateChoices}>
+                  {[new Date(), getTomorrow()].map((option, index) => {
+                    const selected = formatLocalDate(date) === formatLocalDate(option);
+                    return (
+                      <TouchableOpacity
+                        key={index}
+                        style={[styles.dateChoice, selected && styles.dateChoiceSelected]}
+                        onPress={() => setDate(option)}
+                      >
+                        <Text style={[styles.dateChoiceText, selected && styles.dateChoiceTextSelected]}>
+                          {index === 0 ? "היום" : "מחר"} · {option.toLocaleDateString("he-IL")}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              ) : (
+                <DateTimePicker
+                  value={time}
+                  mode="time"
+                  display={Platform.OS === "android" ? "clock" : "spinner"}
+                  is24Hour
+                  timeZoneName="Asia/Jerusalem"
+                  onChange={(event, value) => {
+                    if (Platform.OS === "android") setShowTime(false);
+                    if (event.type !== "dismissed" && value) setTime(value);
+                  }}
+                />
+              )}
 
               <TouchableOpacity
                 style={styles.pickerConfirmButton}
