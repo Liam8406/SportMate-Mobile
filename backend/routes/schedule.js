@@ -43,9 +43,19 @@ router.post("/create", auth, async (req, res) => {
 
     const startDateTime = new Date(`${date}T${startTime}`);
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
-
     const now = new Date();
-    const maxFuture = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const selectedDay = new Date(
+      startDateTime.getFullYear(),
+      startDateTime.getMonth(),
+      startDateTime.getDate()
+    );
+
+    if (!fieldId || Number.isNaN(startDateTime.getTime())) {
+      return res.status(400).json({ error: "Invalid game details" });
+    }
 
     if (duration < 15 || duration > 90) {
       return res.status(400).json({
@@ -59,9 +69,9 @@ router.post("/create", auth, async (req, res) => {
       });
     }
 
-    if (startDateTime > maxFuture) {
+    if (selectedDay < today || selectedDay > tomorrow) {
       return res.status(400).json({
-        error: "You can only schedule a game up to 24 hours in advance"
+        error: "Games can only be scheduled for today or tomorrow"
       });
     }
 

@@ -77,6 +77,15 @@ export default function createStyles(colors) {
       elevation: 4,
     },
 
+    pickerPanel: {
+      backgroundColor: colors.card,
+      borderRadius: 18,
+      marginBottom: 18,
+      overflow: "hidden",
+      padding: 8,
+      elevation: 4,
+    },
+
     durationCard: {
       backgroundColor: colors.card,
       borderRadius: 18,
@@ -157,14 +166,197 @@ export default function createStyles(colors) {
       marginBottom: 15,
     },
 
+    hostRow: {
+      alignItems: "center",
+      flexDirection: "row-reverse",
+      marginBottom: 14,
+    },
+
+    hostAvatar: {
+      borderRadius: 24,
+      height: 48,
+      width: 48,
+    },
+
+    hostAvatarFallback: {
+      alignItems: "center",
+      backgroundColor: colors.selected,
+      borderRadius: 24,
+      height: 48,
+      justifyContent: "center",
+      width: 48,
+    },
+
+    hostInitial: {
+      color: colors.primary,
+      fontSize: 20,
+      fontWeight: "800",
+    },
+
+    hostDetails: {
+      alignItems: "flex-end",
+      marginRight: 12,
+    },
+
+    hostName: {
+      color: colors.text,
+      fontSize: 17,
+      fontWeight: "700",
+      writingDirection: "rtl",
+    },
+
+    hostAge: {
+      color: colors.secondaryText,
+      fontSize: 14,
+      marginTop: 2,
+      writingDirection: "rtl",
+    },
+
+    sessionDetailsRow: {
+      alignItems: "center",
+      flexDirection: "row-reverse",
+      justifyContent: "space-between",
+      marginBottom: 12,
+    },
+
+    sessionDate: {
+      color: colors.secondaryText,
+      fontSize: 14,
+    },
+
+    durationText: {
+      color: colors.secondaryText,
+      fontSize: 14,
+    },
+
+    playersCount: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "600",
+    },
+
     time: {
+      color: colors.primary,
       fontSize: 18,
       fontWeight: "700",
     },
 
     join: {
-      fontSize: 22,
+      color: "#FFFFFF",
+      fontSize: 24,
+      fontWeight: "700",
+    },
+
+    sessionActions: {
+      alignItems: "center",
+      flexDirection: "row-reverse",
+      justifyContent: "space-between",
+    },
+
+    joinButton: {
+      alignItems: "center",
+      backgroundColor: colors.primary,
+      borderRadius: 18,
+      height: 36,
+      justifyContent: "center",
+      width: 36,
+    },
+
+    deleteButton: {
+      alignItems: "center",
+      backgroundColor: colors.background,
+      borderRadius: 18,
+      height: 36,
+      justifyContent: "center",
+      width: 36,
+    },
+
+    deleteButtonText: {
+      fontSize: 18,
+    },
+
+    statusBadge: {
+      backgroundColor: colors.selected,
+      borderRadius: 14,
+      paddingHorizontal: 12,
+      paddingVertical: 7,
+    },
+
+    fullBadge: {
+      opacity: 0.6,
+    },
+
+    statusText: {
       color: colors.primary,
+      fontSize: 13,
+      fontWeight: "700",
+      writingDirection: "rtl",
+    },
+
+    playersButton: {
+      borderColor: colors.primary,
+      borderRadius: 16,
+      borderWidth: 1,
+      paddingHorizontal: 14,
+      paddingVertical: 7,
+    },
+
+    playersButtonText: {
+      color: colors.primary,
+      fontSize: 13,
+      fontWeight: "600",
+      writingDirection: "rtl",
+    },
+
+    participantsList: {
+      borderTopColor: colors.border,
+      borderTopWidth: 1,
+      marginTop: 14,
+      paddingTop: 10,
+    },
+
+    playerRow: {
+      alignItems: "center",
+      flexDirection: "row-reverse",
+      marginTop: 8,
+    },
+
+    playerAvatar: {
+      borderRadius: 18,
+      height: 36,
+      width: 36,
+    },
+
+    playerAvatarFallback: {
+      alignItems: "center",
+      backgroundColor: colors.selected,
+      borderRadius: 18,
+      height: 36,
+      justifyContent: "center",
+      width: 36,
+    },
+
+    playerInitial: {
+      color: colors.primary,
+      fontSize: 15,
+      fontWeight: "800",
+    },
+
+    playerDetails: {
+      alignItems: "flex-end",
+      marginRight: 10,
+    },
+
+    playerName: {
+      color: colors.text,
+      fontSize: 14,
+      fontWeight: "700",
+    },
+
+    playerAge: {
+      color: colors.secondaryText,
+      fontSize: 12,
+      marginTop: 1,
     },
 
     error: {

@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import {
-  SafeAreaView,
+  Alert,
+  Platform,
   ScrollView,
   View,
   Text,
   TouchableOpacity,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import createStyles from "../design/scheduleStyles";
@@ -33,6 +35,20 @@ const sportLooks = {
   },
 };
 
+const formatLocalDate = (value) => {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+const getTomorrow = () => {
+  const tomorrow = new Date();
+  tomorrow.setHours(23, 59, 59, 999);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  return tomorrow;
+};
+
 export default function ScheduleScreen({ navigation, route }) {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -44,6 +60,7 @@ export default function ScheduleScreen({ navigation, route }) {
   };
 
   const look = sportLooks[field.sport] || sportLooks.Field;
+  const fieldId = field.id || field._id;
 
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
@@ -53,6 +70,7 @@ export default function ScheduleScreen({ navigation, route }) {
   const [showTime, setShowTime] = useState(false);
 
   const [sessions, setSessions] = useState([]);
+  const [expandedSessionId, setExpandedSessionId] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState("");
 
@@ -65,8 +83,8 @@ export default function ScheduleScreen({ navigation, route }) {
       const userRes = await api.get("/profile");
       setCurrentUser(userRes.data);
 
-      if (field._id) {
-        const sessRes = await api.get(`/schedule/${field._id}`);
+      if (fieldId) {
+        const sessRes = await api.get(`/schedule/${fieldId}`);
         setSessions(sessRes.data);
       }
     } catch (err) {
@@ -80,10 +98,10 @@ export default function ScheduleScreen({ navigation, route }) {
 
       const token = await AsyncStorage.getItem("token");
 
-      const bookingDate = date.toISOString().split("T")[0];
+      const bookingDate = formatLocalDate(date);
       const bookingTime = time.toTimeString().slice(0, 5);
 
-      if (!field._id) {
+      if (!fieldId) {
         setError("שדה לא תקין");
         return;
       }
@@ -91,7 +109,7 @@ export default function ScheduleScreen({ navigation, route }) {
       const res = await api.post(
         "/schedule/create",
         {
-          fieldId: field._id,
+          fieldId,
           fieldName: field.name,
           sport: field.sport,
           date: bookingDate,
@@ -105,7 +123,14 @@ export default function ScheduleScreen({ navigation, route }) {
         }
       );
 
-      setSessions((prev) => [...prev, res.data]);
+      setSessions((prev) =>
+        [...prev, res.data].sort((a, b) =>
+          `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`)
+        )
+      );
+      setTime(new Date());
+      setDuration(90);
+      Alert.alert("המשחק נוצר", "המשחק נוסף לרשימת המשחקים הפתוחים");
     } catch (err) {
       console.log(err.response?.data);
       setError(err.response?.data?.error || "שגיאה בקביעת משחק");
@@ -129,9 +154,31 @@ export default function ScheduleScreen({ navigation, route }) {
       setSessions((prev) =>
         prev.map((s) => (s._id === id ? res.data : s))
       );
-    } catch {
-      alert("שגיאה בהצטרפות");
+    } catch (err) {
+      Alert.alert("שגיאה", err.response?.data?.error || "שגיאה בהצטרפות");
     }
+  };
+
+  const deleteSession = (id) => {
+    Alert.alert("מחיקת משחק", "האם למחוק את המשחק?", [
+      { text: "ביטול", style: "cancel" },
+      {
+        text: "מחיקה",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            const token = await AsyncStorage.getItem("token");
+            await api.delete(`/schedule/${id}`, {
+              headers: { Authorization: `Bearer ${token}` },
+            });
+            setSessions((prev) => prev.filter((session) => session._id !== id));
+            setExpandedSessionId(null);
+          } catch (err) {
+            Alert.alert("שגיאה", err.response?.data?.error || "לא ניתן למחוק את המשחק");
+          }
+        },
+      },
+    ]);
   };
 
   const isHost = (s) =>
@@ -163,7 +210,10 @@ export default function ScheduleScreen({ navigation, route }) {
           <View style={styles.bookingRow}>
             <TouchableOpacity
               style={styles.bookingCard}
-              onPress={() => setShowDate(true)}
+              onPress={() => {
+                setShowTime(false);
+                setShowDate((current) => !current);
+              }}
             >
               <Text style={styles.bookingTitle}>תאריך</Text>
               <Text style={styles.bookingValue}>
@@ -173,7 +223,10 @@ export default function ScheduleScreen({ navigation, route }) {
 
             <TouchableOpacity
               style={styles.bookingCard}
-              onPress={() => setShowTime(true)}
+              onPress={() => {
+                setShowDate(false);
+                setShowTime((current) => !current);
+              }}
             >
               <Text style={styles.bookingTitle}>שעה</Text>
               <Text style={styles.bookingValue}>
@@ -184,6 +237,39 @@ export default function ScheduleScreen({ navigation, route }) {
               </Text>
             </TouchableOpacity>
           </View>
+
+          {showDate ? (
+            <View style={styles.pickerPanel}>
+              <DateTimePicker
+                value={date}
+                mode="date"
+                display={Platform.OS === "ios" ? "inline" : "default"}
+                locale="he-IL"
+                minimumDate={new Date()}
+                maximumDate={getTomorrow()}
+                onChange={(event, selectedDate) => {
+                  if (Platform.OS === "android") setShowDate(false);
+                  if (event.type !== "dismissed" && selectedDate) setDate(selectedDate);
+                }}
+              />
+            </View>
+          ) : null}
+
+          {showTime ? (
+            <View style={styles.pickerPanel}>
+              <DateTimePicker
+                value={time}
+                mode="time"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                locale="he-IL"
+                is24Hour
+                onChange={(event, selectedTime) => {
+                  if (Platform.OS === "android") setShowTime(false);
+                  if (event.type !== "dismissed" && selectedTime) setTime(selectedTime);
+                }}
+              />
+            </View>
+          ) : null}
 
           <View style={styles.durationCard}>
             <Text style={styles.bookingTitle}>משך משחק</Text>
@@ -239,54 +325,106 @@ export default function ScheduleScreen({ navigation, route }) {
               const isParticipant = s.players.some(
                 (p) => p._id === currentUser?._id
               );
+              const isFull = s.players.length >= s.maxPlayers;
+              const isExpanded = expandedSessionId === s._id;
 
               return (
                 <View key={s._id} style={styles.sessionCard}>
-                  <Text style={styles.time}>{s.startTime}</Text>
+                  <View style={styles.hostRow}>
+                    {s.host?.avatar ? (
+                      <Image source={{ uri: s.host.avatar }} style={styles.hostAvatar} />
+                    ) : (
+                      <View style={styles.hostAvatarFallback}>
+                        <Text style={styles.hostInitial}>
+                          {(s.host?.username || "S").slice(0, 1).toUpperCase()}
+                        </Text>
+                      </View>
+                    )}
 
-                  <Text>
-                    {s.players.length}/{s.maxPlayers}
-                  </Text>
+                    <View style={styles.hostDetails}>
+                      <Text style={styles.hostName}>{s.host?.username || "שחקן"}</Text>
+                      <Text style={styles.hostAge}>
+                        {s.host?.age ? `גיל ${s.host.age}` : "גיל לא צוין"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.sessionDetailsRow}>
+                    <Text style={styles.time}>{s.startTime}</Text>
+                    <Text style={styles.durationText}>{s.durationMinutes} דק׳</Text>
+                    <Text style={styles.sessionDate}>
+                      {new Date(`${s.date}T12:00:00`).toLocaleDateString("he-IL")}
+                    </Text>
+
+                    <Text style={styles.playersCount}>
+                      {s.players.length}/{s.maxPlayers}
+                    </Text>
+                  </View>
+
+                  <View style={styles.sessionActions}>
+                    <TouchableOpacity
+                      style={styles.playersButton}
+                      onPress={() => setExpandedSessionId(isExpanded ? null : s._id)}
+                    >
+                      <Text style={styles.playersButtonText}>
+                        {isExpanded ? "הסתר שחקנים" : "הצג שחקנים"}
+                      </Text>
+                    </TouchableOpacity>
 
                   {isHost(s) ? (
-                    <Text>אתה מארח</Text>
+                    <TouchableOpacity
+                      style={styles.deleteButton}
+                      onPress={() => deleteSession(s._id)}
+                    >
+                      <Text style={styles.deleteButtonText}>🗑</Text>
+                    </TouchableOpacity>
                   ) : isParticipant ? (
-                    <Text>רשום</Text>
+                    <View style={styles.statusBadge}>
+                      <Text style={styles.statusText}>רשום</Text>
+                    </View>
+                  ) : isFull ? (
+                    <View style={[styles.statusBadge, styles.fullBadge]}>
+                      <Text style={styles.statusText}>מלא</Text>
+                    </View>
                   ) : (
                     <TouchableOpacity
+                      style={styles.joinButton}
                       onPress={() => joinSession(s._id)}
                     >
                       <Text style={styles.join}>+</Text>
                     </TouchableOpacity>
                   )}
+                  </View>
+
+                  {isExpanded ? (
+                    <View style={styles.participantsList}>
+                      {s.players.map((player) => (
+                        <View key={player._id} style={styles.playerRow}>
+                          {player.avatar ? (
+                            <Image source={{ uri: player.avatar }} style={styles.playerAvatar} />
+                          ) : (
+                            <View style={styles.playerAvatarFallback}>
+                              <Text style={styles.playerInitial}>
+                                {(player.username || "S").slice(0, 1).toUpperCase()}
+                              </Text>
+                            </View>
+                          )}
+                          <View style={styles.playerDetails}>
+                            <Text style={styles.playerName}>{player.username}</Text>
+                            <Text style={styles.playerAge}>
+                              {player.age ? `גיל ${player.age}` : "גיל לא צוין"}
+                            </Text>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  ) : null}
                 </View>
               );
             })
           )}
         </View>
 
-        {showDate && (
-          <DateTimePicker
-            value={date}
-            mode="date"
-            minimumDate={new Date()}
-            onChange={(e, d) => {
-              setShowDate(false);
-              if (d) setDate(d);
-            }}
-          />
-        )}
-
-        {showTime && (
-          <DateTimePicker
-            value={time}
-            mode="time"
-            onChange={(e, t) => {
-              setShowTime(false);
-              if (t) setTime(t);
-            }}
-          />
-        )}
       </ScrollView>
     </SafeAreaView>
   );
