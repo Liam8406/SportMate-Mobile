@@ -2,7 +2,6 @@ import { StyleSheet } from "react-native";
 
 export default function createStyles(colors) {
   return StyleSheet.create({
-
     safeArea: {
       flex: 1,
       backgroundColor: colors.background,
@@ -24,12 +23,6 @@ export default function createStyles(colors) {
       position: "absolute",
       top: 55,
       left: 20,
-    },
-
-    favoriteButton: {
-      position: "absolute",
-      top: 55,
-      right: 20,
     },
 
     headerIcon: {
@@ -66,15 +59,6 @@ export default function createStyles(colors) {
       fontWeight: "700",
       textAlign: "right",
       marginBottom: 14,
-      writingDirection: "rtl",
-    },
-
-    description: {
-      color: colors.text,
-      fontSize: 16,
-      lineHeight: 28,
-      textAlign: "right",
-      marginBottom: 30,
       writingDirection: "rtl",
     },
 
@@ -116,6 +100,22 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
+    durationRow: {
+      flexDirection: "row",
+      gap: 10,
+      marginTop: 10,
+    },
+
+    durationBtn: {
+      padding: 10,
+      borderRadius: 10,
+      backgroundColor: colors.background,
+    },
+
+    activeDuration: {
+      backgroundColor: colors.primary,
+    },
+
     createButton: {
       height: 58,
       borderRadius: 30,
@@ -150,12 +150,27 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
-    emptySubtitle: {
-      color: colors.secondaryText,
-      fontSize: 15,
-      textAlign: "center",
-      writingDirection: "rtl",
+    sessionCard: {
+      backgroundColor: colors.card,
+      padding: 15,
+      borderRadius: 16,
+      marginBottom: 15,
     },
 
+    time: {
+      fontSize: 18,
+      fontWeight: "700",
+    },
+
+    join: {
+      fontSize: 22,
+      color: colors.primary,
+    },
+
+    error: {
+      color: "#D42626",
+      textAlign: "center",
+      marginBottom: 10,
+    },
   });
 }
