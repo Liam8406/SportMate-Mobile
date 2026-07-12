@@ -22,7 +22,7 @@ export default function createStyles(colors) {
     backButton: {
       position: "absolute",
       top: 55,
-      left: 20,
+      right: 20,
     },
 
     headerIcon: {
@@ -74,6 +74,8 @@ export default function createStyles(colors) {
       borderRadius: 18,
       paddingVertical: 18,
       alignItems: "center",
+      overflow: "hidden",
+      position: "relative",
       elevation: 4,
     },
 
@@ -84,6 +86,46 @@ export default function createStyles(colors) {
       overflow: "hidden",
       padding: 8,
       elevation: 4,
+    },
+
+    pickerModalBackdrop: {
+      alignItems: "center",
+      backgroundColor: "rgba(0,0,0,0.45)",
+      flex: 1,
+      justifyContent: "center",
+      paddingHorizontal: 20,
+    },
+
+    pickerModalCard: {
+      backgroundColor: colors.card,
+      borderRadius: 22,
+      maxWidth: 420,
+      padding: 18,
+      width: "100%",
+    },
+
+    pickerModalTitle: {
+      color: colors.text,
+      fontSize: 20,
+      fontWeight: "700",
+      marginBottom: 8,
+      textAlign: "right",
+      writingDirection: "rtl",
+    },
+
+    pickerConfirmButton: {
+      alignItems: "center",
+      backgroundColor: colors.primary,
+      borderRadius: 16,
+      height: 46,
+      justifyContent: "center",
+      marginTop: 8,
+    },
+
+    pickerConfirmText: {
+      color: "#FFFFFF",
+      fontSize: 17,
+      fontWeight: "700",
     },
 
     durationCard: {

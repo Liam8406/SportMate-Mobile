@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Alert,
+  Modal,
   Platform,
   ScrollView,
   View,
@@ -178,7 +179,7 @@ export default function ScheduleScreen({ navigation, route }) {
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
-            <Text style={styles.headerIcon}>‹</Text>
+            <Text style={styles.headerIcon}>›</Text>
           </TouchableOpacity>
 
           <View style={styles.overlay}>
@@ -196,20 +197,18 @@ export default function ScheduleScreen({ navigation, route }) {
               style={styles.bookingCard}
               onPress={() => {
                 setShowTime(false);
-                setShowDate((current) => !current);
+                setShowDate(true);
               }}
             >
               <Text style={styles.bookingTitle}>תאריך</Text>
-              <Text style={styles.bookingValue}>
-                {date.toLocaleDateString("he-IL")}
-              </Text>
+              <Text style={styles.bookingValue}>{date.toLocaleDateString("he-IL")}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.bookingCard}
               onPress={() => {
                 setShowDate(false);
-                setShowTime((current) => !current);
+                setShowTime(true);
               }}
             >
               <Text style={styles.bookingTitle}>שעה</Text>
@@ -222,33 +221,31 @@ export default function ScheduleScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          {showDate ? (
+          {Platform.OS === "android" && showDate ? (
             <View style={styles.pickerPanel}>
               <DateTimePicker
                 value={date}
                 mode="date"
-                display={Platform.OS === "ios" ? "inline" : "default"}
-                locale="he-IL"
+                display="default"
                 minimumDate={new Date()}
                 maximumDate={getTomorrow()}
                 onChange={(event, selectedDate) => {
-                  if (Platform.OS === "android") setShowDate(false);
+                  setShowDate(false);
                   if (event.type !== "dismissed" && selectedDate) setDate(selectedDate);
                 }}
               />
             </View>
           ) : null}
 
-          {showTime ? (
+          {Platform.OS === "android" && showTime ? (
             <View style={styles.pickerPanel}>
               <DateTimePicker
                 value={time}
                 mode="time"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                locale="he-IL"
+                display="default"
                 is24Hour
                 onChange={(event, selectedTime) => {
-                  if (Platform.OS === "android") setShowTime(false);
+                  setShowTime(false);
                   if (event.type !== "dismissed" && selectedTime) setTime(selectedTime);
                 }}
               />
@@ -416,6 +413,51 @@ export default function ScheduleScreen({ navigation, route }) {
         </View>
 
       </ScrollView>
+
+      {Platform.OS === "ios" ? (
+        <Modal
+          animationType="fade"
+          transparent
+          visible={showDate || showTime}
+          onRequestClose={() => {
+            setShowDate(false);
+            setShowTime(false);
+          }}
+        >
+          <View style={styles.pickerModalBackdrop}>
+            <View style={styles.pickerModalCard}>
+              <Text style={styles.pickerModalTitle}>
+                {showDate ? "בחירת תאריך" : "בחירת שעת התחלה"}
+              </Text>
+
+              <DateTimePicker
+                value={showDate ? date : time}
+                mode={showDate ? "date" : "time"}
+                display="spinner"
+                is24Hour
+                timeZoneName="Asia/Jerusalem"
+                minimumDate={showDate ? new Date() : undefined}
+                maximumDate={showDate ? getTomorrow() : undefined}
+                onChange={(event, value) => {
+                  if (event.type === "dismissed" || !value) return;
+                  if (showDate) setDate(value);
+                  else setTime(value);
+                }}
+              />
+
+              <TouchableOpacity
+                style={styles.pickerConfirmButton}
+                onPress={() => {
+                  setShowDate(false);
+                  setShowTime(false);
+                }}
+              >
+                <Text style={styles.pickerConfirmText}>אישור</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      ) : null}
     </SafeAreaView>
   );
 }
