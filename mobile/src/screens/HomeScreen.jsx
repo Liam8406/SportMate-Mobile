@@ -16,6 +16,7 @@ import * as Location from "expo-location";
 import api from "../../api";
 import createStyles from "../design/homeStyles";
 import { useTheme } from "../theme/useTheme";
+import ScheduleScreen from "./ScheduleScreen";
 
 const sports = [
   { id: "football", label: "כדורגל", value: "Football", icon: "⚽", color: "#6DDD73" },
@@ -250,10 +251,6 @@ export default function HomeScreen({ navigation }) {
     fetchFields(activeCenter, selectedSport, nextPageToken);
   };
 
-  const handleBookField = (field) => {
-    Alert.alert("קביעת משחק", field?.name || "בחרת מגרש");
-  };
-
   const renderSport = ({ item }) => {
     const active = selectedSport === item.value || (selectedSport === null && item.value === null);
 
@@ -306,7 +303,7 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.bookButton}
-            onPress={() => handleBookField(item)}
+            onPress={() => navigation.navigate("Schedule")}
           >
             <Text style={styles.bookButtonText}>קביעת משחק</Text>
           </TouchableOpacity>

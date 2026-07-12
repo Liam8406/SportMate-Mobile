@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { ThemeProvider } from "./src/theme/useTheme";
 
 import SplashScreen from "./src/screens/SplashScreen";
 import LoginScreen from "./src/screens/LoginScreen";
@@ -7,8 +8,7 @@ import SignUpScreen from "./src/screens/SignUpScreen";
 import HomeScreen from "./src/screens/HomeScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import SettingsScreen from "./src/screens/SettingsScreen";
-import { ThemeProvider } from "./src/theme/useTheme";
-
+import ScheduleScreen from "./src/screens/ScheduleScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +49,10 @@ export default function App() {
           <Stack.Screen
             name="Settings"
             component={SettingsScreen}
+          />
+          <Stack.Screen
+            name="Schedule"
+            component={ScheduleScreen}
           />
         </Stack.Navigator>
       </NavigationContainer>
