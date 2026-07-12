@@ -13,6 +13,7 @@ export const lightColors = {
 
   success: "#1E8E3E",
   error: "#D42626",
+  danger: "#B91C1C",
 
   selected: "#E9F0FF",
 };

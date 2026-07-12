@@ -5,8 +5,7 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $backendPath = Join-Path $root "backend"
 $mobilePath = Join-Path $root "mobile"
-
-Write-Host "[dev] starting backend..."
+$env:DOTENV_CONFIG_QUIET = "true"
 
 $backendJob = Start-Job -Name "sportmate-backend" -ScriptBlock {
   param($path)
@@ -18,15 +17,13 @@ try {
   Start-Sleep -Seconds 2
   Receive-Job $backendJob -Keep
 
-  Write-Host "[dev] starting Expo..."
   Set-Location $mobilePath
   if ($Clear) {
-    npm start -- --clear
+    & ".\node_modules\.bin\expo.cmd" start --clear
   } else {
-    npm start
+    & ".\node_modules\.bin\expo.cmd" start
   }
 } finally {
-  Write-Host "[dev] stopping backend..."
   Stop-Job $backendJob -ErrorAction SilentlyContinue
   Remove-Job $backendJob -Force -ErrorAction SilentlyContinue
 }
