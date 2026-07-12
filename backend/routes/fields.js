@@ -7,6 +7,7 @@ const OVERPASS_URLS = [
   "https://overpass.kumi.systems/api/interpreter",
 ];
 const NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
+const PHOTON_REVERSE_URL = "https://photon.komoot.io/reverse";
 const USER_AGENT = "SportMate/1.0";
 
 const MIN_FIELDS = 4;
@@ -104,7 +105,22 @@ async function reverseGeocode(lat, lng) {
     reverseCache.set(key, txt);
     return txt;
   } catch {
-    return "כתובת לא ידועה";
+    try {
+      const { data } = await axios.get(PHOTON_REVERSE_URL, {
+        params: { lat, lon: lng },
+        headers: { "User-Agent": USER_AGENT },
+        timeout: 4000,
+      });
+
+      const p = data?.features?.[0]?.properties || {};
+      const street = `${p.street || ""} ${p.housenumber || ""}`.trim();
+      const place = p.city || p.district || p.county || p.state || p.name || "";
+      const text = `${street} ${place}`.trim() || "כתובת לא ידועה";
+      reverseCache.set(key, text);
+      return text;
+    } catch {
+      return "כתובת לא ידועה";
+    }
   }
 }
 
