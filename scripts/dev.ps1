@@ -1,3 +1,5 @@
+param([switch]$Clear)
+
 $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
@@ -18,7 +20,11 @@ try {
 
   Write-Host "[dev] starting Expo..."
   Set-Location $mobilePath
-  npm start
+  if ($Clear) {
+    npm start -- --clear
+  } else {
+    npm start
+  }
 } finally {
   Write-Host "[dev] stopping backend..."
   Stop-Job $backendJob -ErrorAction SilentlyContinue

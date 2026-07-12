@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1",
+    "dev:clear": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev.ps1 -Clear",
     "backend": "node backend/server.js",
     "mobile": "npm --prefix mobile start"
   }
