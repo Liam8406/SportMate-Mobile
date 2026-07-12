@@ -28,11 +28,16 @@ function auth(req, res, next) {
   }
 }
 
-router.get("/:fieldId", async (req, res) => {
+router.get("/:fieldId", auth, async (req, res) => {
   try {
     const { fieldId } = req.params;
 
-    const sessions = await Session.find({ fieldId })
+    const sessions = await Session.find({
+      $or: [
+        { fieldId },
+        { host: req.userId, endTime: { $gt: new Date() } }
+      ]
+    })
       .populate("host", "username age avatar")
       .populate("players", "username age avatar")
       .sort({ date: 1, startTime: 1 });

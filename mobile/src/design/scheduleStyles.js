@@ -228,6 +228,15 @@ export default function createStyles(colors) {
       marginBottom: 15,
     },
 
+    sessionFieldName: {
+      color: colors.primary,
+      fontSize: 14,
+      fontWeight: "700",
+      marginBottom: 10,
+      textAlign: "right",
+      writingDirection: "rtl",
+    },
+
     hostRow: {
       alignItems: "center",
       flexDirection: "row-reverse",

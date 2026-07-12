@@ -280,6 +280,12 @@ export default function ScheduleScreen({ navigation, route }) {
 
               return (
                 <View key={s._id} style={styles.sessionCard}>
+                  {s.fieldId !== fieldId ? (
+                    <Text style={styles.sessionFieldName}>
+                      המשחק שלך · {s.fieldName || "מגרש אחר"}
+                    </Text>
+                  ) : null}
+
                   <View style={styles.hostRow}>
                     {s.host?.avatar ? (
                       <Image source={{ uri: s.host.avatar }} style={styles.hostAvatar} />
