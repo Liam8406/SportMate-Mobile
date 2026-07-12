@@ -254,12 +254,18 @@ export default function ProfileScreen({ navigation }) {
 
         <View style={styles.card}>
           <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>פרטים אישיים</Text>
             {!editMode ? (
-              <TouchableOpacity onPress={() => setEditMode(true)}>
-                <Text style={styles.editText}>עריכה</Text>
+              <TouchableOpacity
+                accessibilityLabel="עריכת פרטים אישיים"
+                accessibilityRole="button"
+                activeOpacity={0.65}
+                onPress={() => setEditMode(true)}
+                style={styles.editButton}
+              >
+                <Text style={styles.editText}>✎</Text>
               </TouchableOpacity>
             ) : null}
+            <Text style={styles.cardTitle}>פרטים אישיים</Text>
           </View>
 
           {!editMode ? (

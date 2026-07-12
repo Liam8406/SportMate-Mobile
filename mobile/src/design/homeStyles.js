@@ -191,7 +191,7 @@ export default function createStyles(colors) {
       alignItems: "stretch",
       backgroundColor: colors.card,
       flexDirection: "row-reverse",
-      height: 156,
+      minHeight: 190,
       marginBottom: 14,
       overflow: "hidden",
       shadowColor: "#000",
@@ -202,7 +202,7 @@ export default function createStyles(colors) {
     },
 
     fieldImage: {
-      height: 156,
+      height: 190,
       width: 150,
     },
 
@@ -241,18 +241,52 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
+    fieldActions: {
+      alignItems: "center",
+      flexDirection: "row",
+      gap: 8,
+    },
+
     bookButton: {
       alignItems: "center",
-      alignSelf: "stretch",
       backgroundColor: colors.primary,
       borderRadius: 12,
-      height: 31,
+      flex: 1,
+      height: 38,
       justifyContent: "center",
       shadowColor: "#000",
       shadowOffset: { width: 0, height: 4 },
       shadowOpacity: 0.28,
       shadowRadius: 5,
       elevation: 5,
+    },
+
+    mapsButton: {
+      alignItems: "center",
+      backgroundColor: colors.card,
+      borderColor: colors.primary,
+      borderRadius: 20,
+      borderWidth: 2,
+      height: 38,
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 3 },
+      shadowOpacity: 0.2,
+      shadowRadius: 4,
+      width: 38,
+      elevation: 4,
+    },
+
+    mapsButtonPressed: {
+      backgroundColor: colors.primary,
+      opacity: 0.65,
+      transform: [{ scale: 0.88 }],
+    },
+
+    mapsButtonIcon: {
+      fontSize: 22,
+      lineHeight: 25,
+      textAlign: "center",
     },
 
     bookButtonText: {

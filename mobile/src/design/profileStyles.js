@@ -183,11 +183,27 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
+    editButton: {
+      alignItems: "center",
+      backgroundColor: colors.input,
+      borderColor: colors.primary,
+      borderRadius: 18,
+      borderWidth: 1,
+      height: 36,
+      justifyContent: "center",
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.16,
+      shadowRadius: 3,
+      width: 36,
+      elevation: 3,
+    },
+
     editText: {
       color: colors.primary,
-      fontSize: 15,
-      fontWeight: "800",
-      writingDirection: "rtl",
+      fontSize: 24,
+      fontWeight: "700",
+      lineHeight: 27,
     },
 
     infoRow: {

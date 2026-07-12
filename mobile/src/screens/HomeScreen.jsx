@@ -4,6 +4,8 @@ import {
   Alert,
   FlatList,
   Image,
+  Linking,
+  Pressable,
   RefreshControl,
   Text,
   TextInput,
@@ -16,7 +18,6 @@ import * as Location from "expo-location";
 import api from "../../api";
 import createStyles from "../design/homeStyles";
 import { useTheme } from "../theme/useTheme";
-import ScheduleScreen from "./ScheduleScreen";
 
 const sports = [
   { id: "football", label: "כדורגל", value: "Football", icon: "⚽", color: "#6DDD73" },
@@ -78,6 +79,7 @@ export default function HomeScreen({ navigation }) {
   const [activeCenter, setActiveCenter] = useState(null);
   const [fields, setFields] = useState([]);
   const [nextPageToken, setNextPageToken] = useState(null);
+  const [radiusLimitReached, setRadiusLimitReached] = useState(false);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hint, setHint] = useState("");
@@ -108,6 +110,7 @@ export default function HomeScreen({ navigation }) {
       if (!token) {
         setFields([]);
         setNextPageToken(null);
+        setRadiusLimitReached(false);
       }
 
       if (token) {
@@ -119,6 +122,7 @@ export default function HomeScreen({ navigation }) {
       setHint("");
 
       try {
+        const startedAt = Date.now();
         const origin = originOverride || gpsCenter || searchCoords;
         const response = await api.get("/api/fields", {
           params: {
@@ -134,12 +138,27 @@ export default function HomeScreen({ navigation }) {
         const items = response.data?.items || [];
         const next = response.data?.nextPageToken || null;
 
-        // Larger-radius results already include the fields from smaller radii.
-        setFields(items);
+        console.log("[FIELDS] Loaded", {
+          sport: sport || "All",
+          itemCount: items.length,
+          searchRadius: response.data?.searchRadius,
+          loadMore: Boolean(token),
+          providerUnavailable: Boolean(response.data?.providerUnavailable),
+          elapsedMs: Date.now() - startedAt,
+        });
+
+        if (!token || items.length > 0) {
+          setFields(items);
+        }
         setNextPageToken(next);
+        setRadiusLimitReached(Boolean(response.data?.limitReached));
 
         if (items.length === 0 && !token) {
-          setHint("לא נמצאו מגרשים באזור הזה");
+          setHint(
+            response.data?.providerUnavailable
+              ? "לא התקבלו תוצאות כרגע, אפשר לנסות להרחיב את הרדיוס"
+              : "לא נמצאו מגרשים באזור הזה"
+          );
         }
       } catch (err) {
         console.log("Fetch fields error:", err?.response?.data || err?.message || err);
@@ -159,26 +178,28 @@ export default function HomeScreen({ navigation }) {
 
     try {
       const gps = await getCoords();
-      const places = await Location.reverseGeocodeAsync({
-        latitude: gps.lat,
-        longitude: gps.lng,
-        });
-
-        if (places.length > 0) {
-        const place = places[0];
-
-        setLocationName(
-            place.city ||
-            place.subregion ||
-            place.region ||
-            "המיקום שלי"
-        );
-      }
       setGpsCenter(gps);
       setActiveCenter(gps);
       setSelectedSport(null);
       setQuery("");
-      await fetchFields(gps, null, "", gps);
+
+      const fieldsPromise = fetchFields(gps, null, "", gps);
+      const places = await Location.reverseGeocodeAsync({
+        latitude: gps.lat,
+        longitude: gps.lng,
+      }).catch(() => []);
+
+      if (places.length > 0) {
+        const place = places[0];
+
+        setLocationName(
+          place.city ||
+          place.subregion ||
+          place.region ||
+          "המיקום שלי"
+        );
+      }
+      await fieldsPromise;
     } 
     catch {
       setHint("צריך לאשר מיקום כדי להציג מגרשים קרובים");
@@ -256,6 +277,34 @@ export default function HomeScreen({ navigation }) {
     fetchFields(activeCenter, selectedSport, nextPageToken);
   };
 
+  const handleOpenMaps = async (field) => {
+    const destinationLat = toNumber(field?.lat);
+    const destinationLng = toNumber(field?.lng);
+
+    if (destinationLat === null || destinationLng === null) {
+      Alert.alert("Google Maps", "מיקום המגרש אינו זמין");
+      return;
+    }
+
+    try {
+      const origin = await getCoords();
+      setGpsCenter(origin);
+
+      const directionsUrl =
+        "https://www.google.com/maps/dir/?api=1" +
+        `&origin=${origin.lat},${origin.lng}` +
+        `&destination=${destinationLat},${destinationLng}` +
+        "&travelmode=driving";
+
+      await Linking.openURL(directionsUrl);
+    } catch (error) {
+      const message = error?.message === "location-denied"
+        ? "יש לאשר גישה למיקום כדי להתחיל בניווט"
+        : "לא ניתן לפתוח את Google Maps";
+      Alert.alert("Google Maps", message);
+    }
+  };
+
   const renderSport = ({ item }) => {
     const active = selectedSport === item.value || (selectedSport === null && item.value === null);
 
@@ -305,6 +354,19 @@ export default function HomeScreen({ navigation }) {
             {address}
           </Text>
 
+          <View style={styles.fieldActions}>
+          <Pressable
+            accessibilityLabel="ניווט למגרש באמצעות Google Maps"
+            accessibilityRole="button"
+            style={({ pressed }) => [
+              styles.mapsButton,
+              pressed && styles.mapsButtonPressed,
+            ]}
+            onPress={() => handleOpenMaps(item)}
+          >
+            <Text style={styles.mapsButtonIcon}>📍</Text>
+          </Pressable>
+
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.bookButton}
@@ -314,6 +376,7 @@ export default function HomeScreen({ navigation }) {
           >
             <Text style={styles.bookButtonText}>קביעת משחק</Text>
           </TouchableOpacity>
+          </View>
         </View>
       </View>
     );
@@ -381,14 +444,25 @@ export default function HomeScreen({ navigation }) {
 
   const listFooter = (
     <View style={styles.footer}>
-      {nextPageToken ? (
+      {nextPageToken || fields.length > 0 ? (
         <TouchableOpacity
           activeOpacity={0.85}
-          disabled={!canInteract}
+          disabled={!canInteract || !nextPageToken}
           onPress={handleLoadMore}
-          style={[styles.loadMoreButton, !canInteract && styles.disabledButton]}
+          style={[
+            styles.loadMoreButton,
+            (!canInteract || !nextPageToken) && styles.disabledButton,
+          ]}
         >
-          <Text style={styles.loadMoreText}>{loadingMore ? "טוען..." : "טען עוד"}</Text>
+          <Text style={styles.loadMoreText}>
+            {loadingMore
+              ? "טוען..."
+              : nextPageToken
+                ? "טען עוד"
+                : radiusLimitReached
+                  ? "הגעת למגבלת 50 ק״מ"
+                  : "אין מגרשים נוספים"}
+          </Text>
         </TouchableOpacity>
       ) : null}
     </View>
@@ -428,9 +502,7 @@ export default function HomeScreen({ navigation }) {
             style={styles.navItem}
             onPress={() => navigation.navigate("Settings")}
         >
-            <Text style={styles.navIcon}>
-                ⚙
-            </Text>
+            <Text style={styles.navIcon}>⚙︎</Text>
         </TouchableOpacity>
 
         <TouchableOpacity

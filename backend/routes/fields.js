@@ -2,13 +2,16 @@ const express = require("express");
 const axios = require("axios");
 const router = express.Router();
 
-/* ---------------- CONFIG ---------------- */
-const OVERPASS_URL = "https://overpass-api.de/api/interpreter";
+const OVERPASS_URLS = [
+  "https://overpass-api.de/api/interpreter",
+  "https://overpass.kumi.systems/api/interpreter",
+];
 const NOMINATIM_REVERSE_URL = "https://nominatim.openstreetmap.org/reverse";
 const USER_AGENT = "SportMate/1.0";
 
 const MIN_FIELDS = 4;
-const SEARCH_RADII = [2000, 5000, 10000, 20000];
+const SEARCH_RADII = [2000, 5000, 10000, 20000, 35000, 50000];
+const MAX_SEARCH_RADIUS = SEARCH_RADII[SEARCH_RADII.length - 1];
 const DUP_METERS = 120;
 
 const SPORT_TAGS = {
@@ -16,6 +19,7 @@ const SPORT_TAGS = {
   Basketball: ["basketball"],
   Tennis: ["tennis"],
 };
+const SUPPORTED_SPORT_FILTER = Object.values(SPORT_TAGS).flat().join("|");
 
 const SPORT_CONFIG = {
   Football: { label: "כדורגל", icon: "⚽" },
@@ -25,9 +29,8 @@ const SPORT_CONFIG = {
 
 const reverseCache = new Map();
 const overpassCache = new Map();
-const CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL = 10 * 60 * 1000;
 
-/* ---------------- HELPERS ---------------- */
 const toNum = (x) => {
   const n = Number(x);
   return Number.isFinite(n) ? n : null;
@@ -59,20 +62,20 @@ function dedupe(list) {
   return out;
 }
 
-function pickSport(tags, requested) {
-  if (requested !== "All" && SPORT_TAGS[requested]) return requested;
+function pickSport(tags) {
   for (const [k, arr] of Object.entries(SPORT_TAGS)) {
     if (arr.some((v) => String(tags.sport || "").includes(v))) return k;
   }
-  return "Football";
+  return null;
 }
 
 function buildAddress(tags) {
+  const full = tags["addr:full"] || tags["contact:address"] || "";
   const city = tags["addr:city:he"] || tags["addr:city"] || "";
   const street = tags["addr:street:he"] || tags["addr:street"] || "";
   const house = tags["addr:housenumber"] || "";
   const result = `${street} ${house} ${city}`.trim();
-  return result || "";
+  return full || result || "";
 }
 
 async function reverseGeocode(lat, lng) {
@@ -89,7 +92,7 @@ async function reverseGeocode(lat, lng) {
         "accept-language": "he,en",
       },
       headers: { "User-Agent": USER_AGENT },
-      timeout: 5000,
+      timeout: 4000,
     });
 
     const a = data?.address || {};
@@ -104,9 +107,24 @@ async function reverseGeocode(lat, lng) {
   }
 }
 
-/* ---------------- OVERPASS ---------------- */
+async function fillMissingAddresses(items) {
+  const missing = items.filter((item) => !item.address);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < missing.length) {
+      const item = missing[nextIndex++];
+      item.address = await reverseGeocode(item.lat, item.lng);
+    }
+  }
+
+  await Promise.all(
+    Array.from({ length: Math.min(4, missing.length) }, () => worker())
+  );
+}
+
 async function queryOverpass(lat, lng, radius, sportFilter) {
-  const cacheKey = `${lat.toFixed(4)},${lng.toFixed(4)},${radius},${sportFilter}`;
+  const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)},${radius},${sportFilter}`;
   
   const cached = overpassCache.get(cacheKey);
   if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
@@ -114,7 +132,6 @@ async function queryOverpass(lat, lng, radius, sportFilter) {
     return cached.data;
   }
 
-  // Simplified query - search for any sport field first
   const query = sportFilter === "All" 
     ? `
 [out:json][timeout:20];
@@ -137,43 +154,46 @@ out center tags;
 out center tags;
 `;
 
-  try {
-    const start = Date.now();
-    console.log(`[Overpass] Querying radius=${radius}m, sport=${sportFilter}`);
-    
-    const { data } = await axios.post(OVERPASS_URL, query, {
-      headers: { "Content-Type": "text/plain", "User-Agent": USER_AGENT },
-      timeout: 25000,
-    });
+  let lastError;
 
-    const elements = data?.elements || [];
-    const elapsed = Date.now() - start;
-    
-    console.log(`[Overpass] radius=${radius}m -> ${elements.length} elements (${elapsed}ms)`);
+  for (const url of OVERPASS_URLS) {
+    try {
+      const start = Date.now();
+      console.log(`[Overpass] Querying radius=${radius}m via ${new URL(url).host}`);
 
-    overpassCache.set(cacheKey, {
-      data: elements,
-      timestamp: Date.now(),
-    });
+      const { data } = await axios.post(url, query, {
+        headers: { "Content-Type": "text/plain", "User-Agent": USER_AGENT },
+        timeout: 10000,
+      });
 
-    if (overpassCache.size > 50) {
-      const firstKey = overpassCache.keys().next().value;
-      overpassCache.delete(firstKey);
+      const elements = data?.elements || [];
+      console.log(
+        `[Overpass] radius=${radius}m -> ${elements.length} elements (${Date.now() - start}ms)`
+      );
+
+      overpassCache.set(cacheKey, { data: elements, timestamp: Date.now() });
+
+      if (overpassCache.size > 50) {
+        const firstKey = overpassCache.keys().next().value;
+        overpassCache.delete(firstKey);
+      }
+
+      return elements;
+    } catch (error) {
+      lastError = error;
+      console.error(
+        `[Overpass] ${new URL(url).host} failed at radius=${radius}m: ${error.message}`
+      );
     }
-
-    return elements;
-  } catch (err) {
-    console.error(`[Overpass] ERROR radius=${radius}m: ${err.message}`);
-    return [];
   }
+
+  throw new Error(`All Overpass providers failed: ${lastError?.message || "unknown error"}`);
 }
 
-/* ---------------- ROUTE ---------------- */
 router.get("/fields", async (req, res) => {
   const t0 = Date.now();
 
   try {
-    // Parse coordinates
     const searchLat = toNum(req.query.lat);
     const searchLng = toNum(req.query.lng);
     
@@ -182,20 +202,11 @@ router.get("/fields", async (req, res) => {
       return res.status(400).json({ error: "Invalid location" });
     }
 
-    // User's actual location for distance (fallback to search location)
     const userLat = toNum(req.query.userLat) || searchLat;
     const userLng = toNum(req.query.userLng) || searchLng;
 
     const sport = req.query.sport || "All";
     
-    // Build sport filter for Overpass
-    let sportFilter = "All";
-    if (sport !== "All" && SPORT_TAGS[sport]) {
-      sportFilter = SPORT_TAGS[sport].join("|");
-    } else if (sport === "All") {
-      sportFilter = "All";
-    }
-
     console.log(`[FIELDS] Request: search=(${searchLat.toFixed(4)}, ${searchLng.toFixed(4)}), user=(${userLat.toFixed(4)}, ${userLng.toFixed(4)}), sport=${sport}`);
 
     const requestedRadiusIndex = Number.parseInt(req.query.pageToken, 10);
@@ -205,22 +216,35 @@ router.get("/fields", async (req, res) => {
       : 0;
     let allFields = [];
     let usedRadiusIndex = startIndex;
+    let providerUnavailable = false;
 
     for (let radiusIndex = startIndex; radiusIndex < SEARCH_RADII.length; radiusIndex += 1) {
       const radius = SEARCH_RADII[radiusIndex];
       usedRadiusIndex = radiusIndex;
       console.log(`[FIELDS] Trying radius ${radius}m`);
       
-      const elements = await queryOverpass(searchLat, searchLng, radius, sportFilter);
+      let elements;
+      try {
+        elements = await queryOverpass(
+          searchLat,
+          searchLng,
+          radius,
+          SUPPORTED_SPORT_FILTER
+        );
+      } catch (error) {
+        providerUnavailable = true;
+        console.error(`[FIELDS] Keeping previous results after radius ${radius}m failed`);
+        break;
+      }
       
       if (!elements || elements.length === 0) {
         console.log(`[FIELDS] radius ${radius}m → 0 results`);
+        if (isLoadMore) break;
         continue;
       }
 
       console.log(`[FIELDS] Processing ${elements.length} raw elements...`);
 
-      // Process elements
       const processed = elements
         .map((el) => {
           const plat = toNum(el.lat ?? el.center?.lat);
@@ -230,10 +254,10 @@ router.get("/fields", async (req, res) => {
 
           const tags = el.tags || {};
           
-          // Skip if no sport tag
           if (!tags.sport) return null;
 
-          const sportType = pickSport(tags, sport);
+          const sportType = pickSport(tags);
+          if (!sportType || (sport !== "All" && sportType !== sport)) return null;
           const cfg = SPORT_CONFIG[sportType];
 
           const distanceKm = haversineKm(userLat, userLng, plat, plng);
@@ -253,22 +277,44 @@ router.get("/fields", async (req, res) => {
 
       console.log(`[FIELDS] After filtering: ${processed.length} valid fields`);
 
-      // Sort by distance from USER
       processed.sort((a, b) => a.distanceKm - b.distanceKm);
 
-      // Deduplicate
       const deduped = dedupe(processed);
       console.log(`[FIELDS] After deduplication: ${deduped.length} unique fields`);
 
       allFields = deduped;
 
-      // Initial loading expands until at least four fields are available.
-      // Loading more expands exactly one additional radius.
-      if (isLoadMore || deduped.length >= MIN_FIELDS) break;
+      if (!isLoadMore && deduped.length >= MIN_FIELDS) {
+        for (let candidateIndex = 0; candidateIndex <= radiusIndex; candidateIndex += 1) {
+          const candidateRadius = SEARCH_RADII[candidateIndex];
+          const fieldsInsideCandidate = deduped.filter(
+            (field) =>
+              haversineKm(searchLat, searchLng, field.lat, field.lng) * 1000 <= candidateRadius
+          );
+
+          console.log(
+            `[FIELDS] Verified radius ${candidateRadius}m -> ${fieldsInsideCandidate.length} matching fields`
+          );
+
+          if (fieldsInsideCandidate.length >= MIN_FIELDS) {
+            allFields = fieldsInsideCandidate;
+            usedRadiusIndex = candidateIndex;
+            if (candidateIndex < radiusIndex) {
+              console.log(
+                `[FIELDS] Recovered false empty radius: ${candidateRadius}m using ${radius}m response`
+              );
+            }
+            break;
+          }
+        }
+      }
+
+      if (isLoadMore || allFields.length >= MIN_FIELDS) break;
     }
 
     if (allFields.length > 0) {
-      const items = allFields;
+      const items = isLoadMore ? allFields : allFields.slice(0, MIN_FIELDS);
+      await fillMissingAddresses(items);
 
       console.log(`[FIELDS] Success: ${items.length} fields, closest=${items[0].name} (${items[0].distanceKm.toFixed(2)}km), time=${Date.now() - t0}ms`);
 
@@ -278,6 +324,8 @@ router.get("/fields", async (req, res) => {
           ? String(usedRadiusIndex + 1)
           : null,
         searchRadius: SEARCH_RADII[usedRadiusIndex],
+        limitReached: SEARCH_RADII[usedRadiusIndex] === MAX_SEARCH_RADIUS,
+        providerUnavailable,
       });
     }
 
@@ -285,8 +333,12 @@ router.get("/fields", async (req, res) => {
 
     res.json({
       items: [],
-      nextPageToken: null,
+      nextPageToken: usedRadiusIndex < SEARCH_RADII.length - 1
+        ? String(usedRadiusIndex + 1)
+        : null,
       searchRadius: SEARCH_RADII[usedRadiusIndex],
+      limitReached: SEARCH_RADII[usedRadiusIndex] === MAX_SEARCH_RADIUS,
+      providerUnavailable,
     });
 
   } catch (err) {
