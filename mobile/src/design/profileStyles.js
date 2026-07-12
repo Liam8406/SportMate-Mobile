@@ -328,6 +328,26 @@ export default function createStyles(colors) {
       writingDirection: "rtl",
     },
 
+    deleteAccountButton: {
+      alignItems: "center",
+      alignSelf: "center",
+      borderColor: colors.danger,
+      borderRadius: 13,
+      borderWidth: 1.5,
+      height: 45,
+      justifyContent: "center",
+      marginTop: 18,
+      width: "88%",
+    },
+
+    deleteAccountText: {
+      color: colors.danger,
+      fontSize: 15,
+      fontWeight: "800",
+      textAlign: "center",
+      writingDirection: "rtl",
+    },
+
     errorText: {
       color: colors.error,
       fontSize: 14,

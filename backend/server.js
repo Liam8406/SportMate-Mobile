@@ -262,14 +262,25 @@ app.get("/users/:id", auth, async (req, res) => {
   }
 });
 
-// Delete the account and related game sessions.
+// Delete hosted games and remove the user from joined games.
 app.delete("/profile", auth, async (req, res) => {
   try {
     const userId = req.userId;
+    const user = await User.findById(userId);
 
-    await Session.deleteMany({
-      $or: [{ host: userId }, { players: userId }],
-    });
+    if (!user) {
+      return res.status(404).json({ error: "משתמש לא נמצא" });
+    }
+
+    await Session.deleteMany({ host: userId });
+
+    await Session.updateMany(
+      { players: userId },
+      {
+        $pull: { players: userId },
+        $inc: { currentPlayers: -1 },
+      }
+    );
 
     await User.findByIdAndDelete(userId);
 

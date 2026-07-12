@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useState } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -31,6 +32,7 @@ export default function ProfileScreen({ navigation }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
 
@@ -207,6 +209,38 @@ export default function ProfileScreen({ navigation }) {
     }
   }
 
+  // Ask for confirmation before permanently deleting the account.
+  function confirmDeleteAccount() {
+    Alert.alert(
+      "מחיקת חשבון",
+      "הפעולה תמחק את החשבון ולא ניתן לבטל אותה.",
+      [
+        { text: "ביטול", style: "cancel" },
+        {
+          text: "מחיקה",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+
+            try {
+              await api.delete("/profile");
+              await AsyncStorage.removeItem("token");
+
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "Login" }],
+              });
+            } catch (err) {
+              showMessage("error", err?.response?.data?.error || "מחיקת החשבון נכשלה");
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  }
+
   const avatarUri = pickedImage?.uri || user?.avatar || null;
 
   if (loading && !user) {
@@ -360,6 +394,16 @@ export default function ProfileScreen({ navigation }) {
             </Text>
           </TouchableOpacity>
         </View>
+
+        <TouchableOpacity
+          style={styles.deleteAccountButton}
+          onPress={confirmDeleteAccount}
+          disabled={loading || deleting}
+        >
+          <Text style={styles.deleteAccountText}>
+            {deleting ? "מוחק..." : "מחיקת חשבון"}
+          </Text>
+        </TouchableOpacity>
 
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
         {success ? <Text style={styles.successText}>{success}</Text> : null}
