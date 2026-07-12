@@ -11,7 +11,10 @@ export default function SplashScreen({ navigation }) {
   }, []);
 
   async function checkLogin() {
-    const token = await AsyncStorage.getItem("token");
+    const [token] = await Promise.all([
+      AsyncStorage.getItem("token"),
+      new Promise((resolve) => setTimeout(resolve, 900)),
+    ]);
 
     if (token) {
       navigation.reset({
