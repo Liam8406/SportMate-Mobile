@@ -3,6 +3,13 @@ const router = express.Router();
 const Session = require("../models/FieldSchedule");
 const jwt = require("jsonwebtoken");
 
+function formatLocalDate(value) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, "0");
+  const day = String(value.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function auth(req, res, next) {
   const authHeader = req.headers.authorization;
   const bearerToken = authHeader?.startsWith("Bearer ")
@@ -44,14 +51,10 @@ router.post("/create", auth, async (req, res) => {
     const startDateTime = new Date(`${date}T${startTime}`);
     const endDateTime = new Date(startDateTime.getTime() + duration * 60000);
     const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const selectedDay = new Date(
-      startDateTime.getFullYear(),
-      startDateTime.getMonth(),
-      startDateTime.getDate()
-    );
+    const tomorrow = new Date(now);
+    tomorrow.setDate(now.getDate() + 1);
+    const todayKey = formatLocalDate(now);
+    const tomorrowKey = formatLocalDate(tomorrow);
 
     if (!fieldId || Number.isNaN(startDateTime.getTime())) {
       return res.status(400).json({ error: "פרטי המשחק אינם תקינים" });
@@ -63,15 +66,15 @@ router.post("/create", auth, async (req, res) => {
       });
     }
 
-    if (startDateTime < new Date(now.getTime() - 5 * 60000)) {
+    if (date !== todayKey && date !== tomorrowKey) {
       return res.status(400).json({
-        error: "לא ניתן לקבוע משחק בעבר"
+        error: "ניתן לקבוע משחק רק להיום או למחר"
       });
     }
 
-    if (selectedDay < today || selectedDay > tomorrow) {
+    if (date === todayKey && startDateTime < new Date(now.getTime() - 5 * 60000)) {
       return res.status(400).json({
-        error: "ניתן לקבוע משחק רק להיום או למחר"
+        error: "לא ניתן לקבוע משחק בעבר"
       });
     }
 

@@ -98,6 +98,7 @@ async function reverseGeocode(lat, lng) {
     const a = data?.address || {};
     const txt =
       `${a.road || ""} ${a.house_number || ""} ${a.city || a.town || a.village || ""}`.trim() ||
+      data?.display_name ||
       "כתובת לא ידועה";
 
     reverseCache.set(key, txt);
@@ -109,18 +110,10 @@ async function reverseGeocode(lat, lng) {
 
 async function fillMissingAddresses(items) {
   const missing = items.filter((item) => !item.address);
-  let nextIndex = 0;
 
-  async function worker() {
-    while (nextIndex < missing.length) {
-      const item = missing[nextIndex++];
-      item.address = await reverseGeocode(item.lat, item.lng);
-    }
+  for (const item of missing) {
+    item.address = await reverseGeocode(item.lat, item.lng);
   }
-
-  await Promise.all(
-    Array.from({ length: Math.min(4, missing.length) }, () => worker())
-  );
 }
 
 async function queryOverpass(lat, lng, radius, sportFilter) {
@@ -234,7 +227,8 @@ router.get("/fields", async (req, res) => {
       } catch (error) {
         providerUnavailable = true;
         console.error(`[FIELDS] Keeping previous results after radius ${radius}m failed`);
-        break;
+        if (isLoadMore) break;
+        continue;
       }
       
       if (!elements || elements.length === 0) {
