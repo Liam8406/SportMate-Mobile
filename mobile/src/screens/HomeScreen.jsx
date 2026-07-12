@@ -17,6 +17,7 @@ import * as Location from "expo-location";
 
 import api from "../../api";
 import createStyles from "../design/homeStyles";
+import sportLooks from "../lib/sportLooks";
 import { useTheme } from "../theme/useTheme";
 
 const sports = [
@@ -25,29 +26,6 @@ const sports = [
   { id: "all", label: "הכל", value: null, icon: "⌾", color: "#3ED7DA" },
   { id: "basketball", label: "כדורסל", value: "Basketball", icon: "🏀", color: "#FF842F" },
 ];
-
-const sportLooks = {
-  Football: {
-    label: "מגרש כדורגל",
-    image:
-      "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?auto=format&fit=crop&w=500&q=80",
-  },
-  Basketball: {
-    label: "מגרש כדורסל",
-    image:
-      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=500&q=80",
-  },
-  Tennis: {
-    label: "מגרש טניס",
-    image:
-      "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=500&q=80",
-  },
-  Field: {
-    label: "מגרש",
-    image:
-      "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=500&q=80",
-  },
-};
 
 const toNumber = (value) => {
   const number = Number(value);
@@ -488,6 +466,8 @@ export default function HomeScreen({ navigation }) {
 
       <View style={styles.bottomNav}>
         <TouchableOpacity
+            accessibilityLabel="דף הבית"
+            accessibilityRole="button"
             activeOpacity={0.85}
             style={styles.navItem}
             onPress={resetToMyLocation}
@@ -498,6 +478,8 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
+            accessibilityLabel="הגדרות"
+            accessibilityRole="button"
             activeOpacity={0.85}
             style={styles.navItem}
             onPress={() => navigation.navigate("Settings")}
@@ -506,6 +488,8 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
 
         <TouchableOpacity
+            accessibilityLabel="פרופיל"
+            accessibilityRole="button"
             activeOpacity={0.85}
             style={styles.navItem}
             onPress={() => navigation.navigate("Profile")}

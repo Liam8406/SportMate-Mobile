@@ -220,7 +220,12 @@ export default function ProfileScreen({ navigation }) {
     >
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            accessibilityLabel="חזרה"
+            accessibilityRole="button"
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}
+          >
             <Text style={styles.backText}>‹</Text>
           </TouchableOpacity>
         </View>

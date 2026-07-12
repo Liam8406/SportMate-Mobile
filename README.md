@@ -1,18 +1,28 @@
 # SportMate Mobile
 
-SportMate Mobile is the React Native version of the SportMate application.
+SportMate helps players discover nearby sports fields and organize games with other users.
 
-The application allows users to register, log in, browse nearby sports fields, manage their profile, and create or join sports sessions.
+## Features
 
-## Technologies
+- Registration, login, profile editing, profile pictures, and preferences
+- Nearby football, basketball, and tennis field discovery
+- Category filters, location search, distance sorting, and Google Maps directions
+- Game scheduling for today or tomorrow
+- Joining games and viewing player profiles
+- Light and dark themes with RTL Hebrew layouts
 
-- React Native
-- Expo
-- Node.js
-- Express
-- MongoDB
-- Axios
+## Stack
 
-## Status
+- React Native and Expo
+- React Navigation
+- Node.js and Express
+- MongoDB and Mongoose
+- OpenStreetMap, Overpass, Nominatim, and Google Maps links
 
-Currently under development.
+## Run locally
+
+Install the backend and mobile dependencies, configure the required `.env` files, then run:
+
+```powershell
+npm run dev
+```

@@ -10,14 +10,14 @@ function auth(req, res, next) {
     : null;
   const token = bearerToken || req.cookies?.token;
 
-  if (!token) return res.status(401).json({ error: "Unauthorized" });
+  if (!token) return res.status(401).json({ error: "יש להתחבר כדי להמשיך" });
 
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET);
     req.userId = data.id;
     next();
   } catch {
-    res.status(401).json({ error: "Invalid token" });
+    res.status(401).json({ error: "פג תוקף ההתחברות" });
   }
 }
 
@@ -33,7 +33,7 @@ router.get("/:fieldId", async (req, res) => {
     res.json(sessions);
   } catch (err) {
     console.error("Fetch error:", err);
-    res.status(500).json({ error: "Failed to load sessions" });
+    res.status(500).json({ error: "טעינת המשחקים נכשלה" });
   }
 });
 
@@ -54,24 +54,24 @@ router.post("/create", auth, async (req, res) => {
     );
 
     if (!fieldId || Number.isNaN(startDateTime.getTime())) {
-      return res.status(400).json({ error: "Invalid game details" });
+      return res.status(400).json({ error: "פרטי המשחק אינם תקינים" });
     }
 
     if (duration < 15 || duration > 90) {
       return res.status(400).json({
-        error: "Game duration must be between 15 and 90 minutes"
+        error: "משך המשחק חייב להיות בין 15 ל-90 דקות"
       });
     }
 
     if (startDateTime < new Date(now.getTime() - 5 * 60000)) {
       return res.status(400).json({
-        error: "Cannot schedule a game in the past"
+        error: "לא ניתן לקבוע משחק בעבר"
       });
     }
 
     if (selectedDay < today || selectedDay > tomorrow) {
       return res.status(400).json({
-        error: "Games can only be scheduled for today or tomorrow"
+        error: "ניתן לקבוע משחק רק להיום או למחר"
       });
     }
 
@@ -82,7 +82,7 @@ router.post("/create", auth, async (req, res) => {
 
     if (existingHostSession) {
       return res.status(400).json({
-        error: "You already have an active game and cannot create another one"
+        error: "כבר יצרת משחק פעיל ולא ניתן ליצור משחק נוסף"
       });
     }
 
@@ -94,7 +94,7 @@ router.post("/create", auth, async (req, res) => {
 
     if (overlappingSession) {
       return res.status(400).json({
-        error: "The field is already booked during this time"
+        error: "המגרש כבר תפוס בשעות שנבחרו"
       });
     }
 
@@ -122,7 +122,7 @@ router.post("/create", auth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      error: "Failed to create game"
+      error: "יצירת המשחק נכשלה"
     });
   }
 });
@@ -132,14 +132,14 @@ router.post("/:sessionId/join", auth, async (req, res) => {
     const { sessionId } = req.params;
     const session = await Session.findById(sessionId);
 
-    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (!session) return res.status(404).json({ error: "המשחק לא נמצא" });
 
     if (session.players.some((playerId) => playerId.toString() === req.userId.toString())) {
-      return res.status(400).json({ error: "Already joined" });
+      return res.status(400).json({ error: "כבר הצטרפת למשחק" });
     }
 
     if (session.players.length >= session.maxPlayers) {
-      return res.status(400).json({ error: "Session is full" });
+      return res.status(400).json({ error: "המשחק מלא" });
     }
 
     session.players.push(req.userId);
@@ -151,7 +151,7 @@ router.post("/:sessionId/join", auth, async (req, res) => {
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to join" });
+    res.status(500).json({ error: "ההצטרפות למשחק נכשלה" });
   }
 });
 
@@ -161,23 +161,23 @@ router.delete("/:sessionId", auth, async (req, res) => {
     const session = await Session.findById(sessionId);
 
     if (!session) {
-      return res.status(404).json({ error: "Session not found" });
+      return res.status(404).json({ error: "המשחק לא נמצא" });
     }
 
     if (session.host.toString() !== req.userId.toString()) {
-      return res.status(403).json({ error: "Only the creator can delete this session" });
+      return res.status(403).json({ error: "רק יוצר המשחק יכול למחוק אותו" });
     }
 
     await Session.findByIdAndDelete(sessionId);
 
     res.json({ 
       success: true, 
-      message: "Session deleted successfully" 
+      message: "המשחק נמחק בהצלחה"
     });
 
   } catch (err) {
     console.error("Delete error:", err);
-    res.status(500).json({ error: "Failed to delete session" });
+    res.status(500).json({ error: "מחיקת המשחק נכשלה" });
   }
 });
 

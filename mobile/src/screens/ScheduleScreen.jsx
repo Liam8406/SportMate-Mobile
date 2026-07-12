@@ -12,28 +12,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
 import createStyles from "../design/scheduleStyles";
+import sportLooks from "../lib/sportLooks";
 import { useTheme } from "../theme/useTheme";
 import api from "../../api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-const sportLooks = {
-  Football: {
-    label: "מגרש כדורגל",
-    image: "https://images.unsplash.com/photo-1556056504-5c7696c4c28d",
-  },
-  Basketball: {
-    label: "מגרש כדורסל",
-    image: "https://images.unsplash.com/photo-1546519638-68e109498ffc",
-  },
-  Tennis: {
-    label: "מגרש טניס",
-    image: "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0",
-  },
-  Field: {
-    label: "מגרש",
-    image: "https://images.unsplash.com/photo-1526232761682-d26e03ac148e",
-  },
-};
 
 const formatLocalDate = (value) => {
   const year = value.getFullYear();
@@ -191,6 +173,8 @@ export default function ScheduleScreen({ navigation, route }) {
           <Image source={{ uri: look.image }} style={styles.image} />
 
           <TouchableOpacity
+            accessibilityLabel="חזרה"
+            accessibilityRole="button"
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
@@ -363,6 +347,8 @@ export default function ScheduleScreen({ navigation, route }) {
 
                   <View style={styles.sessionActions}>
                     <TouchableOpacity
+                      accessibilityLabel={isExpanded ? "הסתרת רשימת השחקנים" : "הצגת רשימת השחקנים"}
+                      accessibilityRole="button"
                       style={styles.playersButton}
                       onPress={() => setExpandedSessionId(isExpanded ? null : s._id)}
                     >
@@ -373,6 +359,8 @@ export default function ScheduleScreen({ navigation, route }) {
 
                   {isHost(s) ? (
                     <TouchableOpacity
+                      accessibilityLabel="מחיקת המשחק"
+                      accessibilityRole="button"
                       style={styles.deleteButton}
                       onPress={() => deleteSession(s._id)}
                     >
@@ -388,6 +376,8 @@ export default function ScheduleScreen({ navigation, route }) {
                     </View>
                   ) : (
                     <TouchableOpacity
+                      accessibilityLabel="הצטרפות למשחק"
+                      accessibilityRole="button"
                       style={styles.joinButton}
                       onPress={() => joinSession(s._id)}
                     >

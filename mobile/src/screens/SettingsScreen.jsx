@@ -16,7 +16,6 @@ const sports = [
   { value: "None", label: "ללא" },
   { value: "Football", label: "כדורגל" },
   { value: "Basketball", label: "כדורסל" },
-  { value: "Volleyball", label: "כדורעף" },
   { value: "Tennis", label: "טניס" },
 ];
 
@@ -63,6 +62,8 @@ export default function SettingsScreen({ navigation }) {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.header}>
           <TouchableOpacity
+            accessibilityLabel="חזרה"
+            accessibilityRole="button"
             style={styles.backButton}
             onPress={() => navigation.goBack()}
           >
