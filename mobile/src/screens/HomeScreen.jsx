@@ -303,7 +303,9 @@ export default function HomeScreen({ navigation }) {
           <TouchableOpacity
             activeOpacity={0.85}
             style={styles.bookButton}
-            onPress={() => navigation.navigate("Schedule")}
+            onPress={() => navigation.navigate("Schedule", {
+                field: item,
+            })}
           >
             <Text style={styles.bookButtonText}>קביעת משחק</Text>
           </TouchableOpacity>

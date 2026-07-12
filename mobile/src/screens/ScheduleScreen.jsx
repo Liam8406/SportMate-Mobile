@@ -11,21 +11,48 @@ import {
 import createStyles from "../design/scheduleStyles";
 import { useTheme } from "../theme/useTheme";
 
-export default function ScheduleScreen({ navigation }) {
+const sportLooks = {
+  Football: {
+    label: "מגרש כדורגל",
+    image:
+      "https://images.unsplash.com/photo-1556056504-5c7696c4c28d?auto=format&fit=crop&w=500&q=80",
+  },
+  Basketball: {
+    label: "מגרש כדורסל",
+    image:
+      "https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=500&q=80",
+  },
+  Tennis: {
+    label: "מגרש טניס",
+    image:
+      "https://images.unsplash.com/photo-1595435934249-5df7ed86e1c0?auto=format&fit=crop&w=500&q=80",
+  },
+  Field: {
+    label: "מגרש",
+    image:
+      "https://images.unsplash.com/photo-1526232761682-d26e03ac148e?auto=format&fit=crop&w=500&q=80",
+  },
+};
+
+export default function ScheduleScreen({ navigation, route }) {
 
   const { colors } = useTheme();
   const styles = createStyles(colors);
+  const field = route?.params?.field ?? {
+    sport: "Field",
+  };
+  const look = sportLooks[field.sport] || sportLooks.Field;
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.imageContainer}>
-          <Image
-            source={{
-              uri: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200",
-            }}
-            style={styles.image}
-          />
+            <Image
+                source={{
+                    uri: look.image,
+                }}
+                style={styles.image}
+            />
 
           <TouchableOpacity
             style={styles.backButton}
@@ -36,7 +63,8 @@ export default function ScheduleScreen({ navigation }) {
 
           <View style={styles.overlay}>
             <Text style={styles.fieldTitle}>
-              מגרש כדורגל • מרחבים 1120, דימונה
+                {look.label}
+                {` • ${field.address}`}
             </Text>
           </View>
 
