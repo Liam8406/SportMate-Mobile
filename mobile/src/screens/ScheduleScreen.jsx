@@ -35,7 +35,7 @@ const getTomorrow = () => {
 
 // Manage games for the selected field.
 export default function ScheduleScreen({ navigation, route }) {
-  const { colors } = useTheme();
+  const { colors, darkMode } = useTheme();
   const styles = createStyles(colors);
 
   const field = route?.params?.field ?? {
@@ -433,6 +433,8 @@ export default function ScheduleScreen({ navigation, route }) {
                   mode="time"
                   display={Platform.OS === "android" ? "clock" : "spinner"}
                   is24Hour
+                  textColor={colors.text}
+                  themeVariant={darkMode ? "dark" : "light"}
                   timeZoneName="Asia/Jerusalem"
                   onChange={(event, value) => {
                     if (Platform.OS === "android") setShowTime(false);
