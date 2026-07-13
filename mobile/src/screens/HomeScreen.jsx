@@ -246,7 +246,11 @@ export default function HomeScreen({ navigation }) {
       await fetchFields(searchCoords, selectedSport, "", gps);
     } catch (err) {
       console.log("Geocode error:", err?.response?.data || err?.message || err);
-      setHint("המיקום לא נמצא");
+      setHint(
+        err?.response?.status === 404
+          ? "המיקום לא נמצא"
+          : "שירות חיפוש המיקום אינו זמין כרגע"
+      );
     } finally {
       setLoading(false);
     }

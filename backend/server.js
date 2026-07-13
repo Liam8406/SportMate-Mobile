@@ -295,10 +295,10 @@ app.delete("/profile", auth, async (req, res) => {
 
 // Convert a place name into map coordinates.
 app.get("/geocode", async (req, res) => {
-  try {
-    const q = String(req.query.q || "").trim();
-    if (!q) return res.status(400).json({ error: "Missing q" });
+  const q = String(req.query.q || "").trim();
+  if (!q) return res.status(400).json({ error: "Missing q" });
 
+  try {
     const { data } = await axios.get(
       "https://nominatim.openstreetmap.org/search",
       {
@@ -307,20 +307,50 @@ app.get("/geocode", async (req, res) => {
           format: "json",
           limit: 1,
           countrycodes: "il",
+          "accept-language": "he,en",
         },
         headers: { "User-Agent": "SportMate/1.0" },
+        timeout: 6000,
       }
     );
 
-    if (!data[0]) return res.status(404).json({ error: "Location not found" });
-
-    res.json({
-      lat: Number(data[0].lat),
-      lng: Number(data[0].lon),
-    });
-  } catch {
-    res.status(500).json({ error: "Geocode failed" });
+    if (data[0]) {
+      return res.json({
+        lat: Number(data[0].lat),
+        lng: Number(data[0].lon),
+      });
+    }
+  } catch (error) {
+    console.warn("Nominatim geocode failed:", error.response?.status || error.message);
   }
+
+  try {
+    const { data } = await axios.get("https://photon.komoot.io/api/", {
+      params: {
+        q,
+        limit: 5,
+        lang: "en",
+        bbox: "34.2,29.4,35.9,33.4",
+      },
+      headers: { "User-Agent": "SportMate/1.0" },
+      timeout: 6000,
+    });
+
+    const features = data?.features || [];
+    const result =
+      features.find(
+        (feature) => String(feature.properties?.countrycode || "").toUpperCase() === "IL"
+      ) || features[0];
+    const [lng, lat] = result?.geometry?.coordinates || [];
+
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return res.json({ lat, lng });
+    }
+  } catch (error) {
+    console.warn("Photon geocode failed:", error.response?.status || error.message);
+  }
+
+  return res.status(404).json({ error: "Location not found" });
 });
 
 app.use("/api", fieldsRoutes);
